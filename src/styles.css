@@ -153,3 +153,72 @@
     border: 1px solid oklch(0.4 0.04 260 / 0.4);
   }
 }
+
+/* ===== Anime mode — sakura sunset, manga-inked ===== */
+html.anime {
+  --background: oklch(0.97 0.02 340);
+  --foreground: oklch(0.2 0.04 320);
+
+  --card: oklch(1 0.01 340);
+  --card-foreground: oklch(0.2 0.04 320);
+
+  --popover: oklch(1 0.01 340);
+  --popover-foreground: oklch(0.2 0.04 320);
+
+  --primary: oklch(0.68 0.24 350);
+  --primary-foreground: oklch(0.99 0.01 340);
+
+  --secondary: oklch(0.93 0.05 320);
+  --secondary-foreground: oklch(0.25 0.06 320);
+
+  --muted: oklch(0.94 0.03 330);
+  --muted-foreground: oklch(0.45 0.06 320);
+
+  --accent: oklch(0.78 0.18 230);
+  --accent-foreground: oklch(0.15 0.05 320);
+
+  --destructive: oklch(0.6 0.25 25);
+  --destructive-foreground: oklch(0.99 0.01 340);
+
+  --border: oklch(0.2 0.04 320 / 30%);
+  --input: oklch(0.2 0.04 320 / 30%);
+  --ring: oklch(0.68 0.24 350);
+
+  --gradient-hero: radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      oklch(0.78 0.22 350 / 0.45),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 30%,
+      oklch(0.8 0.2 230 / 0.4),
+      transparent 70%
+    );
+  --gradient-primary: linear-gradient(
+    135deg,
+    oklch(0.72 0.24 350),
+    oklch(0.78 0.2 50)
+  );
+  --gradient-card: linear-gradient(
+    180deg,
+    oklch(1 0.01 340 / 0.95),
+    oklch(0.96 0.03 330 / 0.85)
+  );
+
+  --shadow-glow: 0 0 60px oklch(0.7 0.24 350 / 0.35);
+  --shadow-soft: 0 8px 30px -8px oklch(0.5 0.15 350 / 0.3);
+
+  --font-display: "Bangers", "Space Grotesk", system-ui, sans-serif;
+}
+
+html.anime body {
+  background-image:
+    radial-gradient(circle at 15% 10%, oklch(0.85 0.18 350 / 0.35), transparent 45%),
+    radial-gradient(circle at 85% 20%, oklch(0.85 0.18 50 / 0.3), transparent 45%),
+    radial-gradient(circle at 50% 90%, oklch(0.85 0.15 230 / 0.3), transparent 50%);
+}
+
+html.anime h1, html.anime h2, html.anime h3, html.anime h4 {
+  letter-spacing: 0.01em;
+  text-shadow: 2px 2px 0 oklch(0.2 0.04 320 / 0.15);
+}
