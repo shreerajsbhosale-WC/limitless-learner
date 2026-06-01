@@ -1,10 +1,11 @@
-// Client-side PDF text extraction using pdfjs-dist.
-import * as pdfjsLib from "pdfjs-dist";
-import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
-
+// Client-side PDF text extraction. Imports are dynamic so pdfjs-dist
+// (which touches browser-only APIs at module scope) never loads during SSR.
 export async function extractPdfText(file: File): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  const workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url"))
+    .default;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   const chunks: string[] = [];
