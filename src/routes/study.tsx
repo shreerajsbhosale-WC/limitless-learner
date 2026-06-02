@@ -45,11 +45,17 @@ function StudyPage() {
       if (text.length < 100) {
         throw new Error("Couldn't extract enough text from this PDF. Try a text-based PDF (not a scanned image).");
       }
-      setStatus(animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
+      setStatus(
+        musicMode
+          ? "Tuning your study kit…"
+          : animeMode
+            ? "Powering up your study kit…"
+            : "Crafting your study kit…",
+      );
       // Limit text to ~80k chars
       const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
       const result = await generate({
-        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode },
+        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode, musicMode },
       });
       setMaterials(result);
 
