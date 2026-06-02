@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { extractPdfText } from "@/lib/pdf";
 import { generateStudyMaterials, type StudyMaterials } from "@/lib/study.functions";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
+import { useMusicMode } from "@/hooks/use-music-mode";
 
 
 export const Route = createFileRoute("/study")({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/study")({
 function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const { enabled: animeMode } = useAnimeMode();
+  const { enabled: musicMode } = useMusicMode();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>();
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +45,17 @@ function StudyPage() {
       if (text.length < 100) {
         throw new Error("Couldn't extract enough text from this PDF. Try a text-based PDF (not a scanned image).");
       }
-      setStatus(animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
+      setStatus(
+        musicMode
+          ? "Tuning your study kit…"
+          : animeMode
+            ? "Powering up your study kit…"
+            : "Crafting your study kit…",
+      );
       // Limit text to ~80k chars
       const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
       const result = await generate({
-        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode },
+        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode, musicMode },
       });
       setMaterials(result);
 
