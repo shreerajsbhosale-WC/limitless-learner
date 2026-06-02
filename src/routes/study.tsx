@@ -27,6 +27,7 @@ export const Route = createFileRoute("/study")({
 
 function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
+  const { enabled: animeMode } = useAnimeMode();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>();
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +43,14 @@ function StudyPage() {
       if (text.length < 100) {
         throw new Error("Couldn't extract enough text from this PDF. Try a text-based PDF (not a scanned image).");
       }
-      setStatus("Crafting your study kit…");
+      setStatus(animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
       // Limit text to ~80k chars
       const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
       const result = await generate({
-        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, "") },
+        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode },
       });
       setMaterials(result);
+
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       setError(msg);
