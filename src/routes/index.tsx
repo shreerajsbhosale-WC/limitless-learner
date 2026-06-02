@@ -59,29 +59,64 @@ function LandingPage() {
             </Button>
           </div>
 
-          {/* Visual mock */}
-          <div className="mt-16 relative max-w-4xl mx-auto">
-            <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-3xl rounded-full" />
-            <div className="relative rounded-3xl glass p-2 shadow-soft">
-              <div className="rounded-2xl bg-card p-8 text-left">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="size-2.5 rounded-full bg-destructive/60" />
-                  <div className="size-2.5 rounded-full bg-primary/60" />
-                  <div className="size-2.5 rounded-full bg-accent/60" />
+          {/* 3D Layered Hero Illustration */}
+          <div className="mt-24 mb-12 relative w-full max-w-4xl mx-auto [perspective:1200px]">
+            <div className="absolute -top-10 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-10 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-[120px] pointer-events-none" />
+
+            {/* Main tilted dashboard */}
+            <div className="relative mx-auto w-[85%] aspect-[16/10] rounded-2xl glass shadow-soft overflow-hidden [transform:rotateX(15deg)_rotateY(-5deg)]">
+              <div className="flex gap-1.5 p-4 border-b border-border/50">
+                <div className="size-2.5 rounded-full bg-destructive/40" />
+                <div className="size-2.5 rounded-full bg-amber-500/40" />
+                <div className="size-2.5 rounded-full bg-primary/40" />
+              </div>
+              <div className="p-8 grid grid-cols-2 gap-6 opacity-50">
+                <div className="h-32 rounded-xl border border-border bg-foreground/5" />
+                <div className="h-32 rounded-xl border border-border bg-foreground/5" />
+                <div className="h-32 rounded-xl border border-border bg-foreground/5" />
+                <div className="h-32 rounded-xl border border-border bg-foreground/5" />
+              </div>
+            </div>
+
+            {/* Floating: Flashcards */}
+            <div className="absolute top-1/4 -left-4 md:-left-8 w-60 p-5 rounded-2xl bg-card border border-primary/40 shadow-glow text-left [transform:translateZ(100px)_rotateY(10deg)_rotateX(-5deg)] animate-fade-in">
+              <div className="size-10 rounded-lg bg-primary/15 grid place-items-center mb-4">
+                <BrainCircuit className="size-5 text-primary" />
+              </div>
+              <p className="text-sm font-semibold">Flashcards</p>
+              <p className="text-xs text-muted-foreground">14 cards · ready to review</p>
+              <div className="mt-4 h-1 w-full bg-primary/10 rounded-full overflow-hidden">
+                <div className="h-full w-2/3 bg-primary rounded-full" />
+              </div>
+            </div>
+
+            {/* Floating: Adaptive Quiz */}
+            <div className="absolute -bottom-10 -right-4 md:-right-10 w-72 p-5 rounded-2xl bg-card border border-accent/40 shadow-soft text-left [transform:translateZ(150px)_rotateY(-15deg)] animate-fade-in">
+              <div className="flex items-center justify-between mb-4">
+                <div className="size-10 rounded-lg bg-accent/15 grid place-items-center">
+                  <Zap className="size-5 text-accent" />
                 </div>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {[
-                    { icon: Layers, label: "Notes", body: "5 sections · 28 key points" },
-                    { icon: BrainCircuit, label: "Flashcards", body: "14 cards · ready to review" },
-                    { icon: Zap, label: "Quiz", body: "10 questions · explained" },
-                  ].map(({ icon: Icon, label, body }) => (
-                    <div key={label} className="rounded-xl border border-border bg-background/40 p-4">
-                      <Icon className="size-5 text-primary mb-2" />
-                      <p className="font-semibold">{label}</p>
-                      <p className="text-sm text-muted-foreground">{body}</p>
-                    </div>
-                  ))}
-                </div>
+                <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Active</span>
+              </div>
+              <p className="text-sm font-semibold">Adaptive Quiz</p>
+              <p className="text-xs text-muted-foreground mb-4">Analyzing focus areas…</p>
+              <div className="flex gap-2">
+                <div className="flex-1 h-8 rounded-md bg-foreground/5" />
+                <div className="flex-1 h-8 rounded-md bg-primary/80" />
+              </div>
+            </div>
+
+            {/* Floating: Notes summary */}
+            <div className="absolute -top-10 right-8 md:right-16 w-56 p-4 rounded-xl glass text-left [transform:translateZ(80px)] animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <Layers className="size-4 text-primary" />
+                <p className="text-xs font-medium">Summary generated</p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-1.5 w-full bg-foreground/10 rounded" />
+                <div className="h-1.5 w-4/5 bg-foreground/10 rounded" />
+                <div className="h-1.5 w-full bg-foreground/10 rounded" />
               </div>
             </div>
           </div>
