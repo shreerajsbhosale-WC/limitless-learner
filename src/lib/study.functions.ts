@@ -76,6 +76,10 @@ export const generateStudyMaterials = createServerFn({ method: "POST" })
       ? `\n\nANIME MODE IS ON. For EVERY note bullet, weave in a brief, vivid anime analogy or reference that clarifies the concept — use well-known series (Naruto, One Piece, Attack on Titan, Demon Slayer, JJK, Death Note, FMA, My Hero Academia, Dragon Ball, Bleach, Hunter x Hunter, Code Geass, Steins;Gate, Evangelion, etc.). Format each bullet as: "<concept explanation> — Like <anime reference>: <one-sentence parallel>." Keep the analogies tasteful and genuinely illuminating, not forced. Flashcard backs and quiz explanations should also drop in an anime parallel when it helps. Sprinkle a little shōnen energy into the summary too. Never sacrifice accuracy for flavor.`
       : "";
 
+    const musicAddon = data.musicMode
+      ? `\n\nMUSIC MODE IS ON. For EVERY note bullet, weave in a brief, vivid music analogy or reference that clarifies the concept — draw across genres and eras (The Beatles, Queen, Pink Floyd, Michael Jackson, Beyoncé, Taylor Swift, Kendrick Lamar, Kanye West, Drake, Daft Punk, Radiohead, Nirvana, Bob Dylan, Mozart, Beethoven, Miles Davis, Bad Bunny, BTS, Billie Eilish, Frank Ocean, Tyler the Creator, etc.) — songs, albums, lyrics, production techniques, or music theory (rhythm, harmony, counterpoint, crescendo). Format each bullet as: "<concept explanation> — Like <music reference>: <one-sentence parallel>." Keep analogies tasteful and genuinely illuminating, not forced. Flashcard backs and quiz explanations should also drop in a music parallel when it helps. Let the summary carry a little rhythm too. Never sacrifice accuracy for flavor.`
+      : "";
+
     const systemPrompt = `You are Limitless, an elite study companion. From the provided study material, produce:
 - A short title (<= 80 chars) and 2-3 sentence summary
 - 4-7 structured note sections, each with a clear heading and 3-6 concise bullet points
