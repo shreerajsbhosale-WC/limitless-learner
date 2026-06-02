@@ -85,7 +85,7 @@ export const generateStudyMaterials = createServerFn({ method: "POST" })
 - 4-7 structured note sections, each with a clear heading and 3-6 concise bullet points
 - 10-16 flashcards (front = question or term, back = clear concise answer)
 - 8-12 multiple-choice quiz questions with EXACTLY 4 options each, a 0-indexed correctIndex, and a 1-2 sentence explanation
-Be accurate, specific, and faithful to the source. Avoid filler.${animeAddon}`;
+Be accurate, specific, and faithful to the source. Avoid filler.${animeAddon}${musicAddon}`;
 
 
     const userPrompt = `${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
