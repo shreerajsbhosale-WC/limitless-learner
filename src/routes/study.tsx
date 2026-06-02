@@ -29,6 +29,7 @@ export const Route = createFileRoute("/study")({
 function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const { enabled: animeMode } = useAnimeMode();
+  const { enabled: musicMode } = useMusicMode();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>();
   const [error, setError] = useState<string | null>(null);
