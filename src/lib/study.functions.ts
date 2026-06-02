@@ -5,6 +5,7 @@ const inputSchema = z.object({
   text: z.string().min(50).max(120_000),
   title: z.string().max(200).optional(),
   animeMode: z.boolean().optional(),
+  musicMode: z.boolean().optional(),
 });
 
 
