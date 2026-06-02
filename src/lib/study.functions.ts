@@ -4,7 +4,9 @@ import { z } from "zod";
 const inputSchema = z.object({
   text: z.string().min(50).max(120_000),
   title: z.string().max(200).optional(),
+  animeMode: z.boolean().optional(),
 });
+
 
 const studyMaterialsSchema = {
   type: "object",
@@ -69,12 +71,17 @@ export const generateStudyMaterials = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
+    const animeAddon = data.animeMode
+      ? `\n\nANIME MODE IS ON. For EVERY note bullet, weave in a brief, vivid anime analogy or reference that clarifies the concept — use well-known series (Naruto, One Piece, Attack on Titan, Demon Slayer, JJK, Death Note, FMA, My Hero Academia, Dragon Ball, Bleach, Hunter x Hunter, Code Geass, Steins;Gate, Evangelion, etc.). Format each bullet as: "<concept explanation> — Like <anime reference>: <one-sentence parallel>." Keep the analogies tasteful and genuinely illuminating, not forced. Flashcard backs and quiz explanations should also drop in an anime parallel when it helps. Sprinkle a little shōnen energy into the summary too. Never sacrifice accuracy for flavor.`
+      : "";
+
     const systemPrompt = `You are Limitless, an elite study companion. From the provided study material, produce:
 - A short title (<= 80 chars) and 2-3 sentence summary
 - 4-7 structured note sections, each with a clear heading and 3-6 concise bullet points
 - 10-16 flashcards (front = question or term, back = clear concise answer)
 - 8-12 multiple-choice quiz questions with EXACTLY 4 options each, a 0-indexed correctIndex, and a 1-2 sentence explanation
-Be accurate, specific, and faithful to the source. Avoid filler.`;
+Be accurate, specific, and faithful to the source. Avoid filler.${animeAddon}`;
+
 
     const userPrompt = `${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
 
