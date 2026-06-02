@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { extractPdfText } from "@/lib/pdf";
 import { generateStudyMaterials, type StudyMaterials } from "@/lib/study.functions";
+import { useAnimeMode } from "@/hooks/use-anime-mode";
+
 
 export const Route = createFileRoute("/study")({
   head: () => ({
