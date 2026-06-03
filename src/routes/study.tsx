@@ -136,7 +136,7 @@ function StudyPage() {
                 <Flashcards cards={materials.flashcards} />
               </TabsContent>
               <TabsContent value="quiz">
-                <Quiz questions={materials.quiz} />
+                <Quiz questions={materials.quiz} topic={materials.title} />
               </TabsContent>
             </Tabs>
           </div>
