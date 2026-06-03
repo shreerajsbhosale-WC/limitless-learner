@@ -40,6 +40,7 @@ export function SiteHeader() {
             <Music className="size-4 mr-2" />
             {musicOn ? "Music: On" : "Music mode"}
           </Button>
+          <XpHud />
           <Button asChild variant="default" className="bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow">
             <Link to="/study">Start studying</Link>
           </Button>
