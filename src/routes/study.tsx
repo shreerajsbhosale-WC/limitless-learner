@@ -14,6 +14,7 @@ import { extractPdfText } from "@/lib/pdf";
 import { generateStudyMaterials, type StudyMaterials } from "@/lib/study.functions";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
+import { useProgress } from "@/hooks/use-progress";
 
 
 export const Route = createFileRoute("/study")({
@@ -30,6 +31,7 @@ function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const { enabled: animeMode } = useAnimeMode();
   const { enabled: musicMode } = useMusicMode();
+  const { recordKitGenerated } = useProgress();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>();
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,8 @@ function StudyPage() {
         data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode, musicMode },
       });
       setMaterials(result);
+      recordKitGenerated();
+
 
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
@@ -136,7 +140,7 @@ function StudyPage() {
                 <Flashcards cards={materials.flashcards} />
               </TabsContent>
               <TabsContent value="quiz">
-                <Quiz questions={materials.quiz} />
+                <Quiz questions={materials.quiz} topic={materials.title} />
               </TabsContent>
             </Tabs>
           </div>

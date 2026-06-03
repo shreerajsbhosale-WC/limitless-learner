@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { Check, X, RotateCcw } from "lucide-react";
+import { Check, X, RotateCcw, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StudyMaterials } from "@/lib/study.functions";
+import { useProgress } from "@/hooks/use-progress";
+import { BossBattle } from "./BossBattle";
 
-export function Quiz({ questions }: { questions: StudyMaterials["quiz"] }) {
+export function Quiz({ questions, topic }: { questions: StudyMaterials["quiz"]; topic: string }) {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [bossOpen, setBossOpen] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState(0);
+  const { recordQuiz, recordBossWin } = useProgress();
 
   const score = questions.reduce(
     (s, q, idx) => s + (answers[idx] === q.correctIndex ? 1 : 0),
@@ -17,6 +22,19 @@ export function Quiz({ questions }: { questions: StudyMaterials["quiz"] }) {
     setSubmitted(false);
   };
 
+  const submit = () => {
+    setSubmitted(true);
+    const result = recordQuiz(score, questions.length);
+    setXpAwarded(result.xpAwarded);
+    setBossOpen(true);
+  };
+
+  const closeBoss = () => {
+    const won = score / Math.max(1, questions.length) >= 0.7;
+    if (won) recordBossWin();
+    setBossOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       {submitted && (
@@ -26,10 +44,16 @@ export function Quiz({ questions }: { questions: StudyMaterials["quiz"] }) {
             <p className="font-display text-3xl font-bold">
               {score} / {questions.length}
             </p>
+            <p className="text-sm opacity-80 mt-1">+{xpAwarded} XP earned</p>
           </div>
-          <Button variant="secondary" onClick={reset}>
-            <RotateCcw className="size-4 mr-2" /> Retake
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setBossOpen(true)}>
+              <Swords className="size-4 mr-2" /> Boss
+            </Button>
+            <Button variant="secondary" onClick={reset}>
+              <RotateCcw className="size-4 mr-2" /> Retake
+            </Button>
+          </div>
         </div>
       )}
 
@@ -91,10 +115,21 @@ export function Quiz({ questions }: { questions: StudyMaterials["quiz"] }) {
           size="lg"
           className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow"
           disabled={Object.keys(answers).length !== questions.length}
-          onClick={() => setSubmitted(true)}
+          onClick={submit}
         >
-          Submit answers ({Object.keys(answers).length}/{questions.length})
+          <Swords className="size-4 mr-2" />
+          Submit & face the boss ({Object.keys(answers).length}/{questions.length})
         </Button>
+      )}
+
+      {bossOpen && (
+        <BossBattle
+          topic={topic}
+          correct={score}
+          total={questions.length}
+          xpAwarded={xpAwarded}
+          onClose={closeBoss}
+        />
       )}
     </div>
   );

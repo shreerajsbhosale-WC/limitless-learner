@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
+import { XpHud } from "./XpHud";
 
 export function SiteHeader() {
   const { enabled: animeOn, toggle: toggleAnime } = useAnimeMode();
@@ -39,6 +40,7 @@ export function SiteHeader() {
             <Music className="size-4 mr-2" />
             {musicOn ? "Music: On" : "Music mode"}
           </Button>
+          <XpHud />
           <Button asChild variant="default" className="bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-glow">
             <Link to="/study">Start studying</Link>
           </Button>

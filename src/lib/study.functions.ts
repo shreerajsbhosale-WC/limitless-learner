@@ -80,12 +80,12 @@ export const generateStudyMaterials = createServerFn({ method: "POST" })
       ? `\n\nMUSIC MODE IS ON. For EVERY note bullet, weave in a brief, vivid music analogy or reference that clarifies the concept — draw across genres and eras (The Beatles, Queen, Pink Floyd, Michael Jackson, Beyoncé, Taylor Swift, Kendrick Lamar, Kanye West, Drake, Daft Punk, Radiohead, Nirvana, Bob Dylan, Mozart, Beethoven, Miles Davis, Bad Bunny, BTS, Billie Eilish, Frank Ocean, Tyler the Creator, etc.) — songs, albums, lyrics, production techniques, or music theory (rhythm, harmony, counterpoint, crescendo). Format each bullet as: "<concept explanation> — Like <music reference>: <one-sentence parallel>." Keep analogies tasteful and genuinely illuminating, not forced. Flashcard backs and quiz explanations should also drop in a music parallel when it helps. Let the summary carry a little rhythm too. Never sacrifice accuracy for flavor.`
       : "";
 
-    const systemPrompt = `You are Limitless, an elite study companion. From the provided study material, produce:
-- A short title (<= 80 chars) and 2-3 sentence summary
-- 4-7 structured note sections, each with a clear heading and 3-6 concise bullet points
-- 10-16 flashcards (front = question or term, back = clear concise answer)
-- 8-12 multiple-choice quiz questions with EXACTLY 4 options each, a 0-indexed correctIndex, and a 1-2 sentence explanation
-Be accurate, specific, and faithful to the source. Avoid filler.${animeAddon}${musicAddon}`;
+    const systemPrompt = `You are Limitless, an elite study companion powering an RPG-style learning experience. From the provided study material, produce:
+- A short title (<= 80 chars) and a 2-3 sentence summary that captures the heart of the material
+- 5-8 structured note sections (covering 30-50% of the source depth), each with a clear heading and 4-7 concise, information-dense bullet points organized hierarchically (concept → detail → example)
+- 15-25 flashcards (front = question or term; back = clear, complete answer with a quick memory tip when useful)
+- 10-16 multiple-choice quiz questions with EXACTLY 4 options each, a 0-indexed correctIndex, and a 1-2 sentence explanation that teaches, not just confirms
+Be accurate, specific, and faithful to the source — never invent facts or formulas. Prefer specificity over filler. Make every bullet earn its place.${animeAddon}${musicAddon}`;
 
 
     const userPrompt = `${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;

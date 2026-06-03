@@ -1,17 +1,28 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCw, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { StudyMaterials } from "@/lib/study.functions";
+import { useProgress } from "@/hooks/use-progress";
 
 export function Flashcards({ cards }: { cards: StudyMaterials["flashcards"] }) {
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [reviewed, setReviewed] = useState<Set<number>>(new Set());
+  const { recordFlashReview } = useProgress();
   if (!cards.length) return null;
   const card = cards[i];
 
   const go = (delta: number) => {
     setFlipped(false);
     setI((p) => (p + delta + cards.length) % cards.length);
+  };
+
+  const grade = (correct: boolean) => {
+    if (!reviewed.has(i)) {
+      recordFlashReview(correct);
+      setReviewed((s) => new Set(s).add(i));
+    }
+    setTimeout(() => go(1), 250);
   };
 
   return (
@@ -54,12 +65,23 @@ export function Flashcards({ cards }: { cards: StudyMaterials["flashcards"] }) {
         </div>
       </div>
 
+      {flipped && !reviewed.has(i) && (
+        <div className="flex justify-center gap-3 animate-fade-in">
+          <Button variant="outline" onClick={() => grade(false)} className="border-destructive/60 text-destructive hover:bg-destructive/10">
+            <X className="size-4 mr-2" /> Forgot (+10 XP)
+          </Button>
+          <Button onClick={() => grade(true)} className="bg-gradient-primary text-primary-foreground shadow-glow">
+            <Check className="size-4 mr-2" /> Got it (+25 XP)
+          </Button>
+        </div>
+      )}
+
       <div className="flex items-center justify-center gap-3">
         <Button variant="outline" size="icon" onClick={() => go(-1)}>
           <ChevronLeft className="size-4" />
         </Button>
-        <span className="text-sm text-muted-foreground tabular-nums w-20 text-center">
-          {i + 1} / {cards.length}
+        <span className="text-sm text-muted-foreground tabular-nums w-24 text-center">
+          {i + 1} / {cards.length} · {reviewed.size} reviewed
         </span>
         <Button variant="outline" size="icon" onClick={() => go(1)}>
           <ChevronRight className="size-4" />
