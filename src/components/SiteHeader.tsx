@@ -4,6 +4,7 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
+import { XpHud } from "./XpHud";
 
 export function SiteHeader() {
   const { enabled: animeOn, toggle: toggleAnime } = useAnimeMode();
