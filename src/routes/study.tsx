@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PdfDropzone } from "@/components/PdfDropzone";
@@ -10,18 +10,22 @@ import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { extractPdfText } from "@/lib/pdf";
-import { generateStudyMaterials, type StudyMaterials } from "@/lib/study.functions";
+import { generateStudyMaterials, fetchVideoMeta, type StudyMaterials } from "@/lib/study.functions";
+import { saveStudyKit } from "@/lib/library.functions";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
 import { useProgress } from "@/hooks/use-progress";
-
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/study")({
   head: () => ({
     meta: [
       { title: "Study — Limitless" },
-      { name: "description", content: "Upload a PDF and generate notes, flashcards, and quizzes with Limitless." },
+      { name: "description", content: "Upload a PDF, paste text, or drop a video link to generate notes, flashcards, and quizzes." },
     ],
   }),
   component: StudyPage,
@@ -29,46 +33,82 @@ export const Route = createFileRoute("/study")({
 
 function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
+  const fetchVideo = useServerFn(fetchVideoMeta);
+  const saveKit = useServerFn(saveStudyKit);
   const { enabled: animeMode } = useAnimeMode();
   const { enabled: musicMode } = useMusicMode();
   const { recordKitGenerated } = useProgress();
+  const { user } = useAuth();
+
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const [materials, setMaterials] = useState<StudyMaterials | null>(null);
+  const [sourceType, setSourceType] = useState<"pdf" | "text" | "video">("pdf");
+  const [textInput, setTextInput] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  const runGenerate = async (text: string, title: string, sourceLabel?: string) => {
+    setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
+    const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
+    const result = await generate({
+      data: { text: trimmed, title, animeMode, musicMode, sourceLabel },
+    });
+    setMaterials(result);
+    recordKitGenerated();
+    setSaved(false);
+  };
 
   const handleFile = async (file: File) => {
-    setBusy(true);
-    setError(null);
-    setMaterials(null);
+    setBusy(true); setError(null); setMaterials(null);
     try {
       setStatus("Reading your PDF…");
       const text = await extractPdfText(file);
-      if (text.length < 100) {
-        throw new Error("Couldn't extract enough text from this PDF. Try a text-based PDF (not a scanned image).");
-      }
-      setStatus(
-        musicMode
-          ? "Tuning your study kit…"
-          : animeMode
-            ? "Powering up your study kit…"
-            : "Crafting your study kit…",
-      );
-      // Limit text to ~80k chars
-      const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
-      const result = await generate({
-        data: { text: trimmed, title: file.name.replace(/\.pdf$/i, ""), animeMode, musicMode },
-      });
-      setMaterials(result);
-      recordKitGenerated();
-
-
+      if (text.length < 100) throw new Error("Couldn't extract enough text. Try a text-based PDF.");
+      await runGenerate(text, file.name.replace(/\.pdf$/i, ""), `PDF: ${file.name}`);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Something went wrong.";
-      setError(msg);
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
-      setBusy(false);
-      setStatus(undefined);
+      setBusy(false); setStatus(undefined);
+    }
+  };
+
+  const handleText = async () => {
+    if (textInput.trim().length < 50) { toast.error("Add at least a paragraph of text."); return; }
+    setBusy(true); setError(null); setMaterials(null);
+    try {
+      await runGenerate(textInput, textInput.split(/\s+/).slice(0, 8).join(" "), "Personal notes");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(false); setStatus(undefined);
+    }
+  };
+
+  const handleVideo = async () => {
+    if (!videoUrl.trim()) return;
+    setBusy(true); setError(null); setMaterials(null);
+    try {
+      setStatus("Fetching video info…");
+      const meta = await fetchVideo({ data: { url: videoUrl } });
+      await runGenerate(meta.text, meta.title, `Video: ${videoUrl}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't process that video link.");
+    } finally {
+      setBusy(false); setStatus(undefined);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!materials) return;
+    if (!user) { toast.error("Sign in to save kits to your library."); return; }
+    try {
+      await saveKit({ data: { title: materials.title, sourceType, materials } });
+      setSaved(true);
+      toast.success("Saved to your library");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
     }
   };
 
@@ -78,35 +118,80 @@ function StudyPage() {
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/">
-              <ArrowLeft className="size-4 mr-2" /> Home
-            </Link>
+            <Link to="/"><ArrowLeft className="size-4 mr-2" /> Home</Link>
           </Button>
           {materials && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setMaterials(null);
-                setError(null);
-              }}
-            >
-              <RefreshCw className="size-4 mr-2" /> New PDF
-            </Button>
+            <div className="flex gap-2">
+              {user && (
+                <Button variant="outline" size="sm" onClick={handleSave} disabled={saved}>
+                  <Save className="size-4 mr-2" /> {saved ? "Saved" : "Save to library"}
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => { setMaterials(null); setError(null); setSaved(false); }}>
+                <RefreshCw className="size-4 mr-2" /> New
+              </Button>
+            </div>
           )}
         </div>
 
         {!materials && (
           <div className="max-w-2xl mx-auto">
             <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-center mb-3">
-              Upload a PDF
+              Make a study kit
             </h1>
             <p className="text-center text-muted-foreground mb-8">
-              We'll turn it into notes, flashcards, and a practice quiz.
+              From a PDF, your own notes, or a video link.
             </p>
-            <PdfDropzone onFile={handleFile} busy={busy} status={status} />
-            {error && (
-              <p className="mt-4 text-sm text-destructive text-center">{error}</p>
+
+            <Tabs value={sourceType} onValueChange={(v) => setSourceType(v as typeof sourceType)} className="mb-6">
+              <TabsList className="grid grid-cols-3 bg-secondary">
+                <TabsTrigger value="pdf" className="gap-2"><FileUp className="size-4" /> PDF</TabsTrigger>
+                <TabsTrigger value="text" className="gap-2"><Type className="size-4" /> Text</TabsTrigger>
+                <TabsTrigger value="video" className="gap-2"><Video className="size-4" /> Video link</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {sourceType === "pdf" && <PdfDropzone onFile={handleFile} busy={busy} status={status} />}
+
+            {sourceType === "text" && (
+              <div className="space-y-3">
+                <Textarea
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Paste lecture notes, an article, a chapter, or your own writing…"
+                  className="min-h-[260px]"
+                  disabled={busy}
+                />
+                <Button onClick={handleText} disabled={busy} className="w-full bg-gradient-primary text-primary-foreground h-11">
+                  {busy ? <><Loader2 className="size-4 mr-2 animate-spin" />{status}</> : "Generate study kit"}
+                </Button>
+              </div>
+            )}
+
+            {sourceType === "video" && (
+              <div className="space-y-3">
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=…"
+                  disabled={busy}
+                  className="h-12"
+                />
+                <p className="text-xs text-muted-foreground">
+                  We'll pull the video's title and topic and generate study material from it.
+                </p>
+                <Button onClick={handleVideo} disabled={busy || !videoUrl.trim()} className="w-full bg-gradient-primary text-primary-foreground h-11">
+                  {busy ? <><Loader2 className="size-4 mr-2 animate-spin" />{status}</> : "Generate from video"}
+                </Button>
+              </div>
+            )}
+
+            {error && <p className="mt-4 text-sm text-destructive text-center">{error}</p>}
+
+            {!user && (
+              <p className="mt-6 text-center text-xs text-muted-foreground">
+                <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to save your kits and sync across devices.
+              </p>
             )}
           </div>
         )}
@@ -115,33 +200,17 @@ function StudyPage() {
           <div>
             <header className="mb-8">
               <p className="text-xs uppercase tracking-widest text-primary mb-2">Your study kit</p>
-              <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">
-                {materials.title}
-              </h1>
+              <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{materials.title}</h1>
             </header>
-
             <Tabs defaultValue="notes" className="w-full">
               <TabsList className="grid grid-cols-3 max-w-md mb-8 bg-secondary">
-                <TabsTrigger value="notes" className="gap-2">
-                  <Layers className="size-4" /> Notes
-                </TabsTrigger>
-                <TabsTrigger value="cards" className="gap-2">
-                  <BrainCircuit className="size-4" /> Cards
-                </TabsTrigger>
-                <TabsTrigger value="quiz" className="gap-2">
-                  <Zap className="size-4" /> Quiz
-                </TabsTrigger>
+                <TabsTrigger value="notes" className="gap-2"><Layers className="size-4" /> Notes</TabsTrigger>
+                <TabsTrigger value="cards" className="gap-2"><BrainCircuit className="size-4" /> Cards</TabsTrigger>
+                <TabsTrigger value="quiz" className="gap-2"><Zap className="size-4" /> Quiz</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="notes">
-                <Notes notes={materials.notes} summary={materials.summary} />
-              </TabsContent>
-              <TabsContent value="cards">
-                <Flashcards cards={materials.flashcards} />
-              </TabsContent>
-              <TabsContent value="quiz">
-                <Quiz questions={materials.quiz} topic={materials.title} />
-              </TabsContent>
+              <TabsContent value="notes"><Notes notes={materials.notes} summary={materials.summary} /></TabsContent>
+              <TabsContent value="cards"><Flashcards cards={materials.flashcards} /></TabsContent>
+              <TabsContent value="quiz"><Quiz questions={materials.quiz} topic={materials.title} /></TabsContent>
             </Tabs>
           </div>
         )}

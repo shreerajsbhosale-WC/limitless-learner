@@ -2,12 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  text: z.string().min(50).max(120_000),
+  text: z.string().min(20).max(120_000),
   title: z.string().max(200).optional(),
   animeMode: z.boolean().optional(),
   musicMode: z.boolean().optional(),
+  sourceLabel: z.string().max(200).optional(),
 });
-
 
 const studyMaterialsSchema = {
   type: "object",
@@ -29,10 +29,7 @@ const studyMaterialsSchema = {
       type: "array",
       items: {
         type: "object",
-        properties: {
-          front: { type: "string" },
-          back: { type: "string" },
-        },
+        properties: { front: { type: "string" }, back: { type: "string" } },
         required: ["front", "back"],
       },
     },
@@ -58,12 +55,7 @@ export type StudyMaterials = {
   summary: string;
   notes: { heading: string; points: string[] }[];
   flashcards: { front: string; back: string }[];
-  quiz: {
-    question: string;
-    options: string[];
-    correctIndex: number;
-    explanation: string;
-  }[];
+  quiz: { question: string; options: string[]; correctIndex: number; explanation: string }[];
 };
 
 export const generateStudyMaterials = createServerFn({ method: "POST" })
@@ -85,51 +77,31 @@ export const generateStudyMaterials = createServerFn({ method: "POST" })
 - 5-8 structured note sections (covering 30-50% of the source depth), each with a clear heading and 4-7 concise, information-dense bullet points organized hierarchically (concept → detail → example)
 - 15-25 flashcards (front = question or term; back = clear, complete answer with a quick memory tip when useful)
 - 10-16 multiple-choice quiz questions with EXACTLY 4 options each, a 0-indexed correctIndex, and a 1-2 sentence explanation that teaches, not just confirms
-Be accurate, specific, and faithful to the source — never invent facts or formulas. Prefer specificity over filler. Make every bullet earn its place.${animeAddon}${musicAddon}`;
+Be accurate, specific, and faithful to the source — never invent facts or formulas. If the source is thin (e.g. a video title only), generate based on the most likely curriculum for that topic and note when you're inferring. Prefer specificity over filler. Make every bullet earn its place.${animeAddon}${musicAddon}`;
 
+    const userPrompt = `${data.sourceLabel ? `Source: ${data.sourceLabel}\n` : ""}${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
 
-    const userPrompt = `${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
-
-    const resp = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "emit_study_materials",
-                description: "Emit structured study materials",
-                parameters: studyMaterialsSchema,
-              },
-            },
-          ],
-          tool_choice: {
-            type: "function",
-            function: { name: "emit_study_materials" },
-          },
-        }),
-      },
-    );
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        tools: [{
+          type: "function",
+          function: { name: "emit_study_materials", description: "Emit structured study materials", parameters: studyMaterialsSchema },
+        }],
+        tool_choice: { type: "function", function: { name: "emit_study_materials" } },
+      }),
+    });
 
     if (!resp.ok) {
       const body = await resp.text();
-      if (resp.status === 429) {
-        throw new Error("Rate limit hit — please wait a moment and retry.");
-      }
-      if (resp.status === 402) {
-        throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
-      }
+      if (resp.status === 429) throw new Error("Rate limit hit — please wait a moment and retry.");
+      if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
       throw new Error(`AI gateway error ${resp.status}: ${body.slice(0, 300)}`);
     }
 
@@ -137,7 +109,40 @@ Be accurate, specific, and faithful to the source — never invent facts or form
     const toolCall = json?.choices?.[0]?.message?.tool_calls?.[0];
     const args = toolCall?.function?.arguments;
     if (!args) throw new Error("AI returned no structured output");
-
     const parsed = typeof args === "string" ? JSON.parse(args) : args;
     return parsed as StudyMaterials;
+  });
+
+function extractYouTubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
+    if (u.hostname.includes("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return v;
+      const m = u.pathname.match(/\/(?:embed|shorts)\/([\w-]+)/);
+      if (m) return m[1];
+    }
+  } catch {}
+  return null;
+}
+
+export const fetchVideoMeta = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ url: z.string().url().max(500) }).parse(d))
+  .handler(async ({ data }) => {
+    const ytId = extractYouTubeId(data.url);
+    if (ytId) {
+      try {
+        const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${ytId}&format=json`);
+        if (r.ok) {
+          const j = await r.json();
+          return {
+            title: j.title as string,
+            author: j.author_name as string,
+            text: `YouTube video titled "${j.title}" by ${j.author_name}.`,
+          };
+        }
+      } catch {}
+    }
+    return { title: data.url, author: "", text: `Video at ${data.url}.` };
   });
