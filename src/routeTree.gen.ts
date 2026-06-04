@@ -10,11 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudyRouteImport } from './routes/study'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedFlowchartRouteImport } from './routes/_authenticated/flowchart'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedLibraryKitIdRouteImport } from './routes/_authenticated/library.$kitId'
 
 const StudyRoute = StudyRouteImport.update({
   id: '/study',
   path: '/study',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +37,92 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFlowchartRoute = AuthenticatedFlowchartRouteImport.update({
+  id: '/flowchart',
+  path: '/flowchart',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLibraryKitIdRoute =
+  AuthenticatedLibraryKitIdRouteImport.update({
+    id: '/$kitId',
+    path: '/$kitId',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/study': typeof StudyRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/flowchart': typeof AuthenticatedFlowchartRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/study': typeof StudyRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/flowchart': typeof AuthenticatedFlowchartRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/study': typeof StudyRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/flowchart': typeof AuthenticatedFlowchartRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/_authenticated/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/study'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/study'
+    | '/assistant'
+    | '/flowchart'
+    | '/library'
+    | '/library/$kitId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/study'
-  id: '__root__' | '/' | '/study'
+  to:
+    | '/'
+    | '/auth'
+    | '/study'
+    | '/assistant'
+    | '/flowchart'
+    | '/library'
+    | '/library/$kitId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/study'
+    | '/_authenticated/assistant'
+    | '/_authenticated/flowchart'
+    | '/_authenticated/library'
+    | '/_authenticated/library/$kitId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   StudyRoute: typeof StudyRoute
 }
 
@@ -58,6 +135,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,23 +156,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/flowchart': {
+      id: '/_authenticated/flowchart'
+      path: '/flowchart'
+      fullPath: '/flowchart'
+      preLoaderRoute: typeof AuthenticatedFlowchartRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/$kitId': {
+      id: '/_authenticated/library/$kitId'
+      path: '/$kitId'
+      fullPath: '/library/$kitId'
+      preLoaderRoute: typeof AuthenticatedLibraryKitIdRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
   }
 }
 
+interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryKitIdRoute: typeof AuthenticatedLibraryKitIdRoute
+}
+
+const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryKitIdRoute: AuthenticatedLibraryKitIdRoute,
+}
+
+const AuthenticatedLibraryRouteWithChildren =
+  AuthenticatedLibraryRoute._addFileChildren(AuthenticatedLibraryRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedFlowchartRoute: typeof AuthenticatedFlowchartRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedFlowchartRoute: AuthenticatedFlowchartRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   StudyRoute: StudyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
