@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles, Music, Workflow, MessageSquare, Library, LogIn, LogOut, User as UserIcon } from "lucide-react";
+import { Sparkles, Music, Workflow, MessageSquare, Library, LogIn, LogOut, User as UserIcon, Target, Timer, BarChart3, Users, GraduationCap } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
+import { useExamMode } from "@/hooks/use-exam-mode";
 import { useAuth } from "@/hooks/use-auth";
 import { XpHud } from "./XpHud";
+
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -13,23 +15,31 @@ import {
 export function SiteHeader() {
   const { enabled: animeOn, toggle: toggleAnime } = useAnimeMode();
   const { enabled: musicOn, toggle: toggleMusic } = useMusicMode();
+  const { enabled: examOn, toggle: toggleExam } = useExamMode();
   const { user, signOut } = useAuth();
+
 
   return (
     <header className="sticky top-0 z-40 w-full">
       <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
         <Logo />
-        <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+        <nav className="hidden md:flex items-center gap-5 text-sm text-muted-foreground">
           <Link to="/study" className="hover:text-foreground transition-colors">Study</Link>
           {user && (
             <>
+              <Link to="/habits" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Target className="size-3.5" />Habits</Link>
+              <Link to="/focus" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Timer className="size-3.5" />Focus</Link>
+              <Link to="/groups" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Users className="size-3.5" />Groups</Link>
               <Link to="/library" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Library className="size-3.5" />Library</Link>
-              <Link to="/assistant" className="hover:text-foreground transition-colors flex items-center gap-1.5"><MessageSquare className="size-3.5" />Assistant</Link>
-              <Link to="/flowchart" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Workflow className="size-3.5" />Flowcharts</Link>
+              <Link to="/assistant" className="hover:text-foreground transition-colors flex items-center gap-1.5"><MessageSquare className="size-3.5" />AI</Link>
             </>
           )}
         </nav>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={toggleExam} className={examOn ? "border-destructive text-destructive" : ""} title="Exam mode: extra study quests">
+            <GraduationCap className="size-4 md:mr-2" /><span className="hidden md:inline">{examOn ? "Exam: On" : "Exam"}</span>
+          </Button>
+
           <Button variant="outline" size="sm" onClick={toggleAnime} className={animeOn ? "border-primary text-primary" : ""} title="Toggle anime mode">
             <Sparkles className="size-4 md:mr-2" /><span className="hidden md:inline">{animeOn ? "Anime: On" : "Anime"}</span>
           </Button>
@@ -48,9 +58,14 @@ export function SiteHeader() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="truncate max-w-[220px]">{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link to="/library">My library</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/assistant">AI Assistant</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/flowchart">Flowcharts</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/library"><Library className="size-4 mr-2" />My library</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/habits"><Target className="size-4 mr-2" />Habits</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/focus"><Timer className="size-4 mr-2" />Focus timer</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/weekly"><BarChart3 className="size-4 mr-2" />Weekly report</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/groups"><Users className="size-4 mr-2" />Study groups</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/assistant"><MessageSquare className="size-4 mr-2" />AI Assistant</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/flowchart"><Workflow className="size-4 mr-2" />Flowcharts</Link></DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}><LogOut className="size-4 mr-2" />Sign out</DropdownMenuItem>
               </DropdownMenuContent>

@@ -13,7 +13,11 @@ import { Route as StudyRouteImport } from './routes/study'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWeeklyRouteImport } from './routes/_authenticated/weekly'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
+import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
+import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/focus'
 import { Route as AuthenticatedFlowchartRouteImport } from './routes/_authenticated/flowchart'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedLibraryKitIdRouteImport } from './routes/_authenticated/library.$kitId'
@@ -37,9 +41,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWeeklyRoute = AuthenticatedWeeklyRouteImport.update({
+  id: '/weekly',
+  path: '/weekly',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHabitsRoute = AuthenticatedHabitsRouteImport.update({
+  id: '/habits',
+  path: '/habits',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFocusRoute = AuthenticatedFocusRouteImport.update({
+  id: '/focus',
+  path: '/focus',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFlowchartRoute = AuthenticatedFlowchartRouteImport.update({
@@ -65,7 +89,11 @@ export interface FileRoutesByFullPath {
   '/study': typeof StudyRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/flowchart': typeof AuthenticatedFlowchartRoute
+  '/focus': typeof AuthenticatedFocusRoute
+  '/groups': typeof AuthenticatedGroupsRoute
+  '/habits': typeof AuthenticatedHabitsRoute
   '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRoutesByTo {
@@ -74,7 +102,11 @@ export interface FileRoutesByTo {
   '/study': typeof StudyRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/flowchart': typeof AuthenticatedFlowchartRoute
+  '/focus': typeof AuthenticatedFocusRoute
+  '/groups': typeof AuthenticatedGroupsRoute
+  '/habits': typeof AuthenticatedHabitsRoute
   '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRoutesById {
@@ -85,7 +117,11 @@ export interface FileRoutesById {
   '/study': typeof StudyRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/flowchart': typeof AuthenticatedFlowchartRoute
+  '/_authenticated/focus': typeof AuthenticatedFocusRoute
+  '/_authenticated/groups': typeof AuthenticatedGroupsRoute
+  '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/_authenticated/weekly': typeof AuthenticatedWeeklyRoute
   '/_authenticated/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
 }
 export interface FileRouteTypes {
@@ -96,7 +132,11 @@ export interface FileRouteTypes {
     | '/study'
     | '/assistant'
     | '/flowchart'
+    | '/focus'
+    | '/groups'
+    | '/habits'
     | '/library'
+    | '/weekly'
     | '/library/$kitId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,7 +145,11 @@ export interface FileRouteTypes {
     | '/study'
     | '/assistant'
     | '/flowchart'
+    | '/focus'
+    | '/groups'
+    | '/habits'
     | '/library'
+    | '/weekly'
     | '/library/$kitId'
   id:
     | '__root__'
@@ -115,7 +159,11 @@ export interface FileRouteTypes {
     | '/study'
     | '/_authenticated/assistant'
     | '/_authenticated/flowchart'
+    | '/_authenticated/focus'
+    | '/_authenticated/groups'
+    | '/_authenticated/habits'
     | '/_authenticated/library'
+    | '/_authenticated/weekly'
     | '/_authenticated/library/$kitId'
   fileRoutesById: FileRoutesById
 }
@@ -156,11 +204,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/weekly': {
+      id: '/_authenticated/weekly'
+      path: '/weekly'
+      fullPath: '/weekly'
+      preLoaderRoute: typeof AuthenticatedWeeklyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/library': {
       id: '/_authenticated/library'
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/habits': {
+      id: '/_authenticated/habits'
+      path: '/habits'
+      fullPath: '/habits'
+      preLoaderRoute: typeof AuthenticatedHabitsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups': {
+      id: '/_authenticated/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/focus': {
+      id: '/_authenticated/focus'
+      path: '/focus'
+      fullPath: '/focus'
+      preLoaderRoute: typeof AuthenticatedFocusRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/flowchart': {
@@ -201,13 +277,21 @@ const AuthenticatedLibraryRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedFlowchartRoute: typeof AuthenticatedFlowchartRoute
+  AuthenticatedFocusRoute: typeof AuthenticatedFocusRoute
+  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
+  AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
+  AuthenticatedWeeklyRoute: typeof AuthenticatedWeeklyRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedFlowchartRoute: AuthenticatedFlowchartRoute,
+  AuthenticatedFocusRoute: AuthenticatedFocusRoute,
+  AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
+  AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
+  AuthenticatedWeeklyRoute: AuthenticatedWeeklyRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

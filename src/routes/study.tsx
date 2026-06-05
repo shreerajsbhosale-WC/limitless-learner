@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PdfDropzone } from "@/components/PdfDropzone";
 import { Notes } from "@/components/Notes";
 import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
+import { MatchGame } from "@/components/MatchGame";
+
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -203,15 +205,18 @@ function StudyPage() {
               <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{materials.title}</h1>
             </header>
             <Tabs defaultValue="notes" className="w-full">
-              <TabsList className="grid grid-cols-3 max-w-md mb-8 bg-secondary">
+              <TabsList className="grid grid-cols-4 max-w-xl mb-8 bg-secondary">
                 <TabsTrigger value="notes" className="gap-2"><Layers className="size-4" /> Notes</TabsTrigger>
                 <TabsTrigger value="cards" className="gap-2"><BrainCircuit className="size-4" /> Cards</TabsTrigger>
+                <TabsTrigger value="match" className="gap-2"><Shuffle className="size-4" /> Match</TabsTrigger>
                 <TabsTrigger value="quiz" className="gap-2"><Zap className="size-4" /> Quiz</TabsTrigger>
               </TabsList>
               <TabsContent value="notes"><Notes notes={materials.notes} summary={materials.summary} /></TabsContent>
               <TabsContent value="cards"><Flashcards cards={materials.flashcards} /></TabsContent>
+              <TabsContent value="match"><MatchGame cards={materials.flashcards} /></TabsContent>
               <TabsContent value="quiz"><Quiz questions={materials.quiz} topic={materials.title} /></TabsContent>
             </Tabs>
+
           </div>
         )}
       </main>

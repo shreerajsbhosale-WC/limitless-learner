@@ -146,3 +146,31 @@ export const fetchVideoMeta = createServerFn({ method: "POST" })
     }
     return { title: data.url, author: "", text: `Video at ${data.url}.` };
   });
+
+export const explainMistake = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      question: z.string().max(2000),
+      correct: z.string().max(500),
+      picked: z.string().max(500),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: "You are a kind, sharp tutor. The student got a question wrong. In 2-3 short paragraphs: (1) explain why the correct answer is right, (2) explain why their pick is wrong, (3) one memory trick or quick tip. Be warm, never condescending." },
+          { role: "user", content: `Question: ${data.question}\n\nCorrect answer: ${data.correct}\nMy pick: ${data.picked}` },
+        ],
+      }),
+    });
+    if (!resp.ok) throw new Error(`AI error ${resp.status}`);
+    const json = await resp.json();
+    return { explanation: json?.choices?.[0]?.message?.content ?? "" };
+  });
+
