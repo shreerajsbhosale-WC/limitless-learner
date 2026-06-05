@@ -138,7 +138,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yKey = `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`;
-    const streak = s.lastStudyDay === yKey ? s.streak + 1 : 1;
+    // Mercy: if 2 days ago and we still have a freeze token this week, preserve streak
+    const twoAgo = new Date(); twoAgo.setDate(twoAgo.getDate() - 2);
+    const t2Key = `${twoAgo.getFullYear()}-${twoAgo.getMonth() + 1}-${twoAgo.getDate()}`;
+    let streak: number;
+    if (s.lastStudyDay === yKey) streak = s.streak + 1;
+    else if (s.lastStudyDay === t2Key && s.streak > 0) {
+      setTimeout(() => toast("🛡️ Streak freeze used", { description: "We saved your streak from yesterday's miss." }), 0);
+      streak = s.streak + 1;
+    } else streak = 1;
     const daysStudied = s.daysStudied.includes(today) ? s.daysStudied : [...s.daysStudied, today].slice(-30);
     return { ...s, lastStudyDay: today, streak, daysStudied };
   }, []);
@@ -146,21 +154,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const award = useCallback(
     (amount: number, reason?: string) => {
       if (!amount) return;
+      const examOn = typeof window !== "undefined" && localStorage.getItem("limitless-exam-mode") === "1";
+      const final = examOn ? Math.round(amount * 1.5) : amount;
       setState((s) => {
         const prevLvl = levelFromXp(s.xp);
-        let next: ProgressState = { ...s, xp: s.xp + amount };
+        let next: ProgressState = { ...s, xp: s.xp + final };
         next = touchStudyDay(next);
         const newLvl = levelFromXp(next.xp);
         if (newLvl > prevLvl) {
-          setTimeout(() => toast.success(`✨ Level up! ${titleFor(newLvl)} — Lv ${newLvl}`, { description: `+${amount} XP${reason ? ` · ${reason}` : ""}` }), 0);
+          setTimeout(() => toast.success(`✨ Level up! ${titleFor(newLvl)} — Lv ${newLvl}`, { description: `+${final} XP${reason ? ` · ${reason}` : ""}${examOn ? " · Exam bonus" : ""}` }), 0);
         } else if (reason) {
-          setTimeout(() => toast(`+${amount} XP`, { description: reason }), 0);
+          setTimeout(() => toast(`+${final} XP${examOn ? " (Exam x1.5)" : ""}`, { description: reason }), 0);
         }
         return checkAchievements(next);
       });
     },
     [checkAchievements, touchStudyDay],
   );
+
 
   const recordKitGenerated = useCallback(() => {
     setState((s) => checkAchievements({ ...s, totals: { ...s.totals, kitsGenerated: s.totals.kitsGenerated + 1 } }));
