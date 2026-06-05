@@ -58,9 +58,14 @@ export function SiteHeader() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="truncate max-w-[220px]">{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild><Link to="/library">My library</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/assistant">AI Assistant</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link to="/flowchart">Flowcharts</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/library"><Library className="size-4 mr-2" />My library</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/habits"><Target className="size-4 mr-2" />Habits</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/focus"><Timer className="size-4 mr-2" />Focus timer</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/weekly"><BarChart3 className="size-4 mr-2" />Weekly report</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/groups"><Users className="size-4 mr-2" />Study groups</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/assistant"><MessageSquare className="size-4 mr-2" />AI Assistant</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/flowchart"><Workflow className="size-4 mr-2" />Flowcharts</Link></DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}><LogOut className="size-4 mr-2" />Sign out</DropdownMenuItem>
               </DropdownMenuContent>
