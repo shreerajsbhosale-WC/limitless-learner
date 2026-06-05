@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles, Music, Workflow, MessageSquare, Library, LogIn, LogOut, User as UserIcon } from "lucide-react";
+import { Sparkles, Music, Workflow, MessageSquare, Library, LogIn, LogOut, User as UserIcon, Target, Timer, BarChart3, Users, GraduationCap } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
+import { useExamMode } from "@/hooks/use-exam-mode";
 import { useAuth } from "@/hooks/use-auth";
 import { XpHud } from "./XpHud";
+
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
