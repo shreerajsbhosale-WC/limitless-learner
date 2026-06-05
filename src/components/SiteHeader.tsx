@@ -15,7 +15,9 @@ import {
 export function SiteHeader() {
   const { enabled: animeOn, toggle: toggleAnime } = useAnimeMode();
   const { enabled: musicOn, toggle: toggleMusic } = useMusicMode();
+  const { enabled: examOn, toggle: toggleExam } = useExamMode();
   const { user, signOut } = useAuth();
+
 
   return (
     <header className="sticky top-0 z-40 w-full">
