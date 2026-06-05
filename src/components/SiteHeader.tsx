@@ -23,17 +23,23 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full">
       <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
         <Logo />
-        <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+        <nav className="hidden md:flex items-center gap-5 text-sm text-muted-foreground">
           <Link to="/study" className="hover:text-foreground transition-colors">Study</Link>
           {user && (
             <>
+              <Link to="/habits" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Target className="size-3.5" />Habits</Link>
+              <Link to="/focus" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Timer className="size-3.5" />Focus</Link>
+              <Link to="/groups" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Users className="size-3.5" />Groups</Link>
               <Link to="/library" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Library className="size-3.5" />Library</Link>
-              <Link to="/assistant" className="hover:text-foreground transition-colors flex items-center gap-1.5"><MessageSquare className="size-3.5" />Assistant</Link>
-              <Link to="/flowchart" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Workflow className="size-3.5" />Flowcharts</Link>
+              <Link to="/assistant" className="hover:text-foreground transition-colors flex items-center gap-1.5"><MessageSquare className="size-3.5" />AI</Link>
             </>
           )}
         </nav>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={toggleExam} className={examOn ? "border-destructive text-destructive" : ""} title="Exam mode: extra study quests">
+            <GraduationCap className="size-4 md:mr-2" /><span className="hidden md:inline">{examOn ? "Exam: On" : "Exam"}</span>
+          </Button>
+
           <Button variant="outline" size="sm" onClick={toggleAnime} className={animeOn ? "border-primary text-primary" : ""} title="Toggle anime mode">
             <Sparkles className="size-4 md:mr-2" /><span className="hidden md:inline">{animeOn ? "Anime: On" : "Anime"}</span>
           </Button>
