@@ -231,7 +231,7 @@ function LandingPage() {
             { icon: Clock, step: "02", title: "Wait briefly", body: "Limitless reads it and crafts your study kit." },
             { icon: Sparkles, step: "03", title: "Study", body: "Notes, flashcards, and quizzes — all in one place." },
           ].map(({ icon: Icon, step, title, body }) => (
-            <div key={step} className="rounded-2xl border border-border bg-gradient-card p-6">
+            <div key={step} className="rounded-2xl border border-border bg-gradient-card p-6 hover-lift">
               <p className="font-display text-5xl font-bold text-gradient mb-3">{step}</p>
               <Icon className="size-5 text-primary mb-2" />
               <h3 className="font-display text-xl font-semibold mb-1">{title}</h3>
@@ -239,6 +239,33 @@ function LandingPage() {
             </div>
           ))}
         </div>
+
+        {/* FAQ */}
+        <div className="mt-24 max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">Frequently asked</h2>
+            <p className="text-muted-foreground mt-2 text-sm">Quick answers to the things students ask most.</p>
+          </div>
+          <Accordion type="single" collapsible className="rounded-2xl border border-border bg-gradient-card px-6">
+            <AccordionItem value="q1">
+              <AccordionTrigger>Is Limitless free?</AccordionTrigger>
+              <AccordionContent>Yes — you can upload PDFs and generate study kits without paying.</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="q2">
+              <AccordionTrigger>Do I need an account?</AccordionTrigger>
+              <AccordionContent>You can try it as a guest. Sign in with Google to save your kits, habits, and XP across devices.</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="q3">
+              <AccordionTrigger>What can I upload?</AccordionTrigger>
+              <AccordionContent>PDFs, pasted text, video links, and your own notes — Limitless turns any of them into a kit.</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="q4">
+              <AccordionTrigger>How is my data used?</AccordionTrigger>
+              <AccordionContent>Your uploads are only used to generate your study kit. We don't sell or train public models on your content.</AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
 
         <div className="mt-16 rounded-3xl bg-gradient-primary p-10 md:p-14 text-center shadow-glow">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
@@ -265,6 +292,7 @@ function LandingPage() {
           © {new Date().getFullYear()} Limitless. Study without limits.
         </div>
       </footer>
+      <ScrollToTop />
     </div>
   );
 }
