@@ -7,6 +7,7 @@ import { useMusicMode } from "@/hooks/use-music-mode";
 import { useExamMode } from "@/hooks/use-exam-mode";
 import { useAuth } from "@/hooks/use-auth";
 import { XpHud } from "./XpHud";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -36,16 +37,32 @@ export function SiteHeader() {
           )}
         </nav>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={toggleExam} className={examOn ? "border-destructive text-destructive" : ""} title="Exam mode: extra study quests">
-            <GraduationCap className="size-4 md:mr-2" /><span className="hidden md:inline">{examOn ? "Exam: On" : "Exam"}</span>
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={toggleAnime} className={animeOn ? "border-primary text-primary" : ""} title="Toggle anime mode">
-            <Sparkles className="size-4 md:mr-2" /><span className="hidden md:inline">{animeOn ? "Anime: On" : "Anime"}</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={toggleMusic} className={musicOn ? "border-primary text-primary" : ""} title="Toggle music mode">
-            <Music className="size-4 md:mr-2" /><span className="hidden md:inline">{musicOn ? "Music: On" : "Music"}</span>
-          </Button>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button aria-label="Toggle exam mode" variant="outline" size="sm" onClick={toggleExam} className={examOn ? "border-destructive text-destructive" : ""}>
+                  <GraduationCap className="size-4 md:mr-2" /><span className="hidden md:inline">{examOn ? "Exam: On" : "Exam"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Exam mode — 1.5× XP, tighter quizzes</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button aria-label="Toggle anime theme" variant="outline" size="sm" onClick={toggleAnime} className={animeOn ? "border-primary text-primary" : ""}>
+                  <Sparkles className="size-4 md:mr-2" /><span className="hidden md:inline">{animeOn ? "Anime: On" : "Anime"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Anime theme — sakura palette + display font</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button aria-label="Toggle background music" variant="outline" size="sm" onClick={toggleMusic} className={musicOn ? "border-primary text-primary" : ""}>
+                  <Music className="size-4 md:mr-2" /><span className="hidden md:inline">{musicOn ? "Music: On" : "Music"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Background lofi while you study</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <XpHud />
           {user ? (
             <DropdownMenu>
