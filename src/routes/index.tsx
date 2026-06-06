@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock } from "lucide-react";
+import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock, Target, Timer, MessageSquare, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { ScrollProgress } from "@/components/ScrollProgress";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,10 +29,12 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   return (
     <div className="min-h-screen">
+      <ScrollProgress />
       <SiteHeader />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
+
         <div className="absolute inset-0 bg-gradient-hero pointer-events-none" />
         <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-28 text-center">
           <div className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs text-muted-foreground mb-8">
@@ -155,7 +160,7 @@ function LandingPage() {
           ].map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="rounded-2xl border border-border bg-gradient-card p-6 hover:border-primary/50 transition-colors"
+              className="rounded-2xl border border-border bg-gradient-card p-6 hover:border-primary/50 transition-colors hover-lift"
             >
               <div className="size-11 rounded-xl bg-gradient-primary grid place-items-center text-primary-foreground mb-4 shadow-glow">
                 <Icon className="size-5" />
@@ -166,6 +171,52 @@ function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Stats bento */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { value: "10×", label: "Faster study prep" },
+            { value: "50+", label: "Subjects supported" },
+            { value: "98%", label: "Recall after a week" },
+            { value: "1‑click", label: "PDF → study kit" },
+          ].map((s) => (
+            <div key={s.label} className="rounded-2xl border border-border bg-gradient-card p-6 text-center hover-lift">
+              <p className="font-display text-3xl md:text-4xl font-bold text-gradient">{s.value}</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-2">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* More features bento */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">
+            Built like a complete <span className="text-gradient">study toolkit</span>
+          </h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {[
+            { icon: Target, title: "Habits", body: "Build daily study streaks with preset + custom habits.", to: "/habits" as const },
+            { icon: Timer, title: "Focus timer", body: "Pomodoro sessions that earn XP while you grind.", to: "/focus" as const },
+            { icon: MessageSquare, title: "AI assistant", body: "Ask anything — get answers grounded in your kits.", to: "/assistant" as const },
+            { icon: Users, title: "Study groups", body: "Compete on the XP leaderboard with classmates.", to: "/groups" as const },
+            { icon: Layers, title: "Library", body: "Every kit you've ever made, kept and searchable.", to: "/library" as const },
+            { icon: Sparkles, title: "Exam mode", body: "1.5× XP and tighter quizzes when crunch time hits.", to: "/study" as const },
+          ].map(({ icon: Icon, title, body, to }) => (
+            <Link key={title} to={to} className="group rounded-2xl border border-border bg-gradient-card p-5 hover:border-primary/50 transition-colors hover-lift">
+              <div className="flex items-center gap-3 mb-2">
+                <Icon className="size-5 text-primary" />
+                <h3 className="font-display text-lg font-semibold">{title}</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">{body}</p>
+              <span className="story-link mt-3 inline-block text-xs text-primary">Open</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
 
       {/* How */}
       <section id="how" className="mx-auto max-w-6xl px-6 py-24">
