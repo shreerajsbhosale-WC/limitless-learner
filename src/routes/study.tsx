@@ -9,6 +9,7 @@ import { Notes } from "@/components/Notes";
 import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
 import { MatchGame } from "@/components/MatchGame";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -118,7 +119,9 @@ function StudyPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-10">
+        <Breadcrumbs items={[{ label: materials ? materials.title : "Study" }]} />
         <div className="flex items-center justify-between mb-8">
+
           <Button asChild variant="ghost" size="sm">
             <Link to="/"><ArrowLeft className="size-4 mr-2" /> Home</Link>
           </Button>
