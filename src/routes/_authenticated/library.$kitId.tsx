@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Layers, BrainCircuit, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Notes } from "@/components/Notes";
 import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { KitSkeleton } from "@/components/Skeletons";
 import { getStudyKit } from "@/lib/library.functions";
 import type { StudyMaterials } from "@/lib/study.functions";
 
@@ -27,7 +29,10 @@ function KitPage() {
     return (
       <div className="min-h-screen">
         <SiteHeader />
-        <div className="grid place-items-center py-32"><Loader2 className="size-6 animate-spin text-primary" /></div>
+        <main className="mx-auto max-w-5xl px-6 py-10">
+          <Breadcrumbs items={[{ label: "Library", to: "/library" }, { label: "Loading…" }]} />
+          <KitSkeleton />
+        </main>
       </div>
     );
   }
@@ -38,6 +43,7 @@ function KitPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-10">
+        <Breadcrumbs items={[{ label: "Library", to: "/library" }, { label: data.title }]} />
         <Button asChild variant="ghost" size="sm" className="mb-6">
           <Link to="/library"><ArrowLeft className="size-4 mr-2" />Library</Link>
         </Button>
@@ -47,6 +53,7 @@ function KitPage() {
         </header>
         <Tabs defaultValue="notes">
           <TabsList className="grid grid-cols-3 max-w-md mb-8 bg-secondary">
+
             <TabsTrigger value="notes" className="gap-2"><Layers className="size-4" /> Notes</TabsTrigger>
             <TabsTrigger value="cards" className="gap-2"><BrainCircuit className="size-4" /> Cards</TabsTrigger>
             <TabsTrigger value="quiz" className="gap-2"><Zap className="size-4" /> Quiz</TabsTrigger>
