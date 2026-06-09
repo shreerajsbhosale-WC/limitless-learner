@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Library, Trash2, FileText, Loader2, Plus } from "lucide-react";
+import { Library, Trash2, FileText, Plus } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { CardListSkeleton } from "@/components/Skeletons";
 import { listStudyKits, deleteStudyKit } from "@/lib/library.functions";
 import { toast } from "sonner";
 
@@ -34,6 +37,7 @@ function LibraryPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 py-10">
+        <Breadcrumbs items={[{ label: "Library" }]} />
         <div className="flex items-center justify-between mb-8">
           <div>
             <p className="text-xs uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
@@ -47,7 +51,7 @@ function LibraryPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid place-items-center py-20"><Loader2 className="size-6 animate-spin text-primary" /></div>
+          <CardListSkeleton count={4} />
         ) : !kits?.length ? (
           <div className="rounded-2xl border border-dashed border-border p-16 text-center">
             <FileText className="size-10 mx-auto text-muted-foreground mb-4" />
@@ -59,7 +63,7 @@ function LibraryPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {kits.map((k) => (
-              <div key={k.id} className="rounded-2xl border border-border bg-gradient-card p-5 hover:border-primary/40 transition group">
+              <div key={k.id} className="rounded-2xl border border-border bg-gradient-card p-5 hover:border-primary/40 transition group hover-lift">
                 <div className="flex items-start justify-between gap-3">
                   <Link to="/library/$kitId" params={{ kitId: k.id }} className="flex-1 min-w-0">
                     <p className="text-[10px] uppercase tracking-widest text-primary mb-1">{k.source_type}</p>
@@ -68,14 +72,21 @@ function LibraryPage() {
                       {new Date(k.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
                     </p>
                   </Link>
-                  <button
-                    onClick={() => {
-                      if (confirm("Delete this kit?")) remove.mutate(k.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <ConfirmDialog
+                    trigger={
+                      <button
+                        aria-label={`Delete kit ${k.title}`}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    }
+                    title="Delete this study kit?"
+                    description="This permanently removes the kit and its notes, flashcards, and quiz."
+                    confirmLabel="Delete"
+                    destructive
+                    onConfirm={() => remove.mutate(k.id)}
+                  />
                 </div>
               </div>
             ))}
