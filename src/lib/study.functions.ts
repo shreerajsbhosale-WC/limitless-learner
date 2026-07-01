@@ -151,6 +151,7 @@ export const fetchVideoMeta = createServerFn({ method: "POST" })
   });
 
 export const explainMistake = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       question: z.string().max(2000),
