@@ -66,20 +66,16 @@ export const leaderboard = createServerFn({ method: "POST" })
     return { members: members ?? [] };
   });
 
+// Accepts a small XP delta and forwards it to a SECURITY DEFINER function.
+// The DB function caps the delta per call (max 500) and RLS no longer permits
+// clients to write xp_contributed directly, so users can no longer set an
+// arbitrary absolute XP total on the leaderboard.
 export const reportXp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ xp: z.number().int().min(0).max(100000) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ delta: z.number().int().min(1).max(500) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: rows } = await supabase
-      .from("group_members")
-      .select("id, xp_contributed")
-      .eq("user_id", userId);
-    for (const r of rows ?? []) {
-      await supabase
-        .from("group_members")
-        .update({ xp_contributed: data.xp })
-        .eq("id", r.id);
-    }
+    const { supabase } = context;
+    const { error } = await supabase.rpc("add_group_xp", { _delta: data.delta });
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
