@@ -34,9 +34,18 @@ function GroupsPage() {
     enabled: !!activeId,
   });
 
-  // sync XP on mount
+  // Sync XP earned since last visit as a bounded delta.
+  // The server caps each call at 500 XP so leaderboard scores can only grow
+  // via controlled increments — clients can no longer set an absolute value.
   useEffect(() => {
-    if (state.xp > 0) sync({ data: { xp: state.xp } }).catch(() => {});
+    if (typeof window === "undefined") return;
+    const key = "limitless-xp-reported";
+    const reported = Number(localStorage.getItem(key) ?? "0") || 0;
+    const delta = Math.max(0, Math.min(500, state.xp - reported));
+    if (delta <= 0) return;
+    sync({ data: { delta } })
+      .then(() => localStorage.setItem(key, String(reported + delta)))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.xp]);
 

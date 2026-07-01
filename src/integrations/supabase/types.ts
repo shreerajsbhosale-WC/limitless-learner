@@ -239,6 +239,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_group_xp: { Args: { _delta: number }; Returns: undefined }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
