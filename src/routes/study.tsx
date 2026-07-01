@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { extractPdfText } from "@/lib/pdf";
 import { generateStudyMaterials, fetchVideoMeta, type StudyMaterials } from "@/lib/study.functions";
 import { saveStudyKit } from "@/lib/library.functions";
-import { useAnimeMode } from "@/hooks/use-anime-mode";
 import { useMusicMode } from "@/hooks/use-music-mode";
 import { useProgress } from "@/hooks/use-progress";
 import { useAuth } from "@/hooks/use-auth";
