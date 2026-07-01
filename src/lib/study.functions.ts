@@ -130,6 +130,7 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export const fetchVideoMeta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ url: z.string().url().max(500) }).parse(d))
   .handler(async ({ data }) => {
     const ytId = extractYouTubeId(data.url);
