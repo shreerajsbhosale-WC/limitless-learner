@@ -37,7 +37,7 @@ function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const fetchVideo = useServerFn(fetchVideoMeta);
   const saveKit = useServerFn(saveStudyKit);
-  const { enabled: animeMode } = useAnimeMode();
+  const animeMode = false;
   const { enabled: musicMode } = useMusicMode();
   const { recordKitGenerated } = useProgress();
   const { user } = useAuth();
