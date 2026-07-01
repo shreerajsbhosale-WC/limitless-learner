@@ -59,11 +59,22 @@ export const leaderboard = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data: members, error } = await supabase
       .from("group_members")
-      .select("user_id, xp_contributed, profiles:user_id(display_name, email, avatar_url)")
+      .select("user_id, xp_contributed")
       .eq("group_id", data.groupId)
       .order("xp_contributed", { ascending: false });
     if (error) throw new Error(error.message);
-    return { members: members ?? [] };
+    const ids = (members ?? []).map((m) => m.user_id);
+    let profilesById: Record<string, { display_name: string | null; email: string | null; avatar_url: string | null }> = {};
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email, avatar_url")
+        .in("id", ids);
+      profilesById = Object.fromEntries((profs ?? []).map((p) => [p.id, p]));
+    }
+    return {
+      members: (members ?? []).map((m) => ({ ...m, profiles: profilesById[m.user_id] ?? null })),
+    };
   });
 
 // Accepts a small XP delta and forwards it to a SECURITY DEFINER function.
