@@ -60,6 +60,7 @@ export type StudyMaterials = {
 };
 
 export const generateStudyMaterials = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<StudyMaterials> => {
     const apiKey = process.env.LOVABLE_API_KEY;
