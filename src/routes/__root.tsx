@@ -128,6 +128,7 @@ function RootComponent() {
         <ProgressProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <LofiPlayer />
           <Toaster position="top-right" theme="dark" />
         </ProgressProvider>
       </AuthProvider>
