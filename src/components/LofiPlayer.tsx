@@ -29,7 +29,8 @@ export function LofiPlayer() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const a = new Audio();
-    a.crossOrigin = "anonymous";
+    // Do NOT set crossOrigin — Icecast streams don't send CORS headers and
+    // would fail to play if we ask the browser to enforce them.
     a.preload = "none";
     a.volume = volume;
     audioRef.current = a;
