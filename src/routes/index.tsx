@@ -291,7 +291,7 @@ function LandingPage() {
         <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Limitless. Study without limits.</p>
           <a
-            href="https://discord.gg/Pqp8eFbxU"
+            href="https://discord.gg/P2dR47DVf9"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 hover:text-primary transition-colors"
