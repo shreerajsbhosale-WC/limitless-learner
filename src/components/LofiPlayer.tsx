@@ -74,8 +74,7 @@ export function LofiPlayer() {
     setError(null);
     setLoading(true);
     a.pause();
-    // cache-bust to force fresh stream
-    a.src = STATIONS[idx].url + (STATIONS[idx].url.includes("?") ? "&" : "?") + "t=" + Date.now();
+    a.src = STATIONS[idx].url;
     try {
       await a.play();
     } catch (e) {
