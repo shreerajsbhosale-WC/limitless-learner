@@ -7,10 +7,11 @@ import { cn } from "@/lib/utils";
 
 // Reliable free lofi / chill streams (direct MP3/AAC, CORS-friendly for <audio>)
 const STATIONS = [
-  { name: "Lofi Beats — Chillhop", url: "https://streams.fluxfm.de/Chillhop/mp3-128/streams.fluxfm.de/" },
   { name: "Groove Salad (SomaFM)", url: "https://ice1.somafm.com/groovesalad-128-mp3" },
+  { name: "Chillhop — FluxFM", url: "https://streams.fluxfm.de/Chillhop/mp3-128/streams.fluxfm.de/" },
   { name: "Deep Space One (SomaFM)", url: "https://ice1.somafm.com/deepspaceone-128-mp3" },
   { name: "Fluid (SomaFM)", url: "https://ice1.somafm.com/fluid-128-mp3" },
+  { name: "Lush (SomaFM)", url: "https://ice1.somafm.com/lush-128-mp3" },
 ];
 
 export function LofiPlayer() {
@@ -28,7 +29,8 @@ export function LofiPlayer() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const a = new Audio();
-    a.crossOrigin = "anonymous";
+    // Do NOT set crossOrigin — Icecast streams don't send CORS headers and
+    // would fail to play if we ask the browser to enforce them.
     a.preload = "none";
     a.volume = volume;
     audioRef.current = a;
@@ -72,8 +74,7 @@ export function LofiPlayer() {
     setError(null);
     setLoading(true);
     a.pause();
-    // cache-bust to force fresh stream
-    a.src = STATIONS[idx].url + (STATIONS[idx].url.includes("?") ? "&" : "?") + "t=" + Date.now();
+    a.src = STATIONS[idx].url;
     try {
       await a.play();
     } catch (e) {
