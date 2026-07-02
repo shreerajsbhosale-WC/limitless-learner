@@ -288,8 +288,17 @@ function LandingPage() {
       </section>
 
       <footer className="border-t border-border mt-10">
-        <div className="mx-auto max-w-6xl px-6 py-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Limitless. Study without limits.
+        <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} Limitless. Study without limits.</p>
+          <a
+            href="https://discord.gg/Pqp8eFbxU"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 hover:text-primary transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true"><path d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3c-.2.36-.42.83-.58 1.22a18.27 18.27 0 0 0-5.96 0C9.86 3.83 9.63 3.36 9.43 3a19.74 19.74 0 0 0-3.77 1.37C2.02 9.79 1.02 15.06 1.52 20.25a19.9 19.9 0 0 0 6.03 3.05c.48-.66.91-1.36 1.28-2.1-.7-.26-1.37-.58-2-.96.17-.12.33-.25.49-.38 3.87 1.79 8.06 1.79 11.88 0 .16.13.32.26.49.38-.63.38-1.31.7-2 .96.37.74.8 1.44 1.28 2.1a19.86 19.86 0 0 0 6.03-3.05c.58-6.03-1-11.25-4.68-15.88ZM8.68 15.33c-1.18 0-2.15-1.09-2.15-2.42s.95-2.42 2.15-2.42c1.2 0 2.17 1.09 2.15 2.42 0 1.33-.95 2.42-2.15 2.42Zm6.64 0c-1.18 0-2.15-1.09-2.15-2.42s.95-2.42 2.15-2.42c1.2 0 2.17 1.09 2.15 2.42 0 1.33-.95 2.42-2.15 2.42Z"/></svg>
+            Join our Discord
+          </a>
         </div>
       </footer>
       <ScrollToTop />
