@@ -37,7 +37,7 @@ export function SiteHeader() {
                   <Music className="size-4 md:mr-2" /><span className="hidden md:inline">{musicOn ? "Music: On" : "Music"}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Music mode — adds music analogies to your notes</TooltipContent>
+              <TooltipContent>Music mode — plays lofi radio & adds music analogies to notes</TooltipContent>
             </Tooltip>
           </TooltipProvider>
           <XpHud />

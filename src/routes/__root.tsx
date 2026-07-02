@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ProgressProvider } from "@/hooks/use-progress";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+import { LofiPlayer } from "@/components/LofiPlayer";
 
 function NotFoundComponent() {
   return (
@@ -127,6 +128,7 @@ function RootComponent() {
         <ProgressProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <LofiPlayer />
           <Toaster position="top-right" theme="dark" />
         </ProgressProvider>
       </AuthProvider>
