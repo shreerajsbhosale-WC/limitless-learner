@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ProgressProvider } from "@/hooks/use-progress";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+import { LofiPlayer } from "@/components/LofiPlayer";
 
 function NotFoundComponent() {
   return (
