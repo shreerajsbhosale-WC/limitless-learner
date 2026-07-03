@@ -91,7 +91,7 @@ export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({
     message: z.string().min(1).max(8000),
-    history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })).max(40).default([]),
+    history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(8000) })).max(40).default([]),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
