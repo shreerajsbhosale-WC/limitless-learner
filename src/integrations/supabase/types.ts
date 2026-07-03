@@ -67,6 +67,7 @@ export type Database = {
           group_id: string
           id: string
           joined_at: string
+          last_xp_sync_at: string
           user_id: string
           xp_contributed: number
         }
@@ -74,6 +75,7 @@ export type Database = {
           group_id: string
           id?: string
           joined_at?: string
+          last_xp_sync_at?: string
           user_id: string
           xp_contributed?: number
         }
@@ -81,6 +83,7 @@ export type Database = {
           group_id?: string
           id?: string
           joined_at?: string
+          last_xp_sync_at?: string
           user_id?: string
           xp_contributed?: number
         }
@@ -239,10 +242,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_group_xp: { Args: { _delta: number }; Returns: undefined }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
+      }
+      sync_group_xp: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: number
       }
     }
     Enums: {
