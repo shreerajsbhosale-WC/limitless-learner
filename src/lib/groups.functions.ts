@@ -77,16 +77,33 @@ export const leaderboard = createServerFn({ method: "POST" })
     };
   });
 
-// Accepts a small XP delta and forwards it to a SECURITY DEFINER function.
-// The DB function caps the delta per call (max 500) and RLS no longer permits
-// clients to write xp_contributed directly, so users can no longer set an
-// arbitrary absolute XP total on the leaderboard.
+// Server-verified XP sync for a specific group.
+// Ignores any client-supplied delta — the DB function derives earned XP
+// from the caller's real focus sessions + habit logs since their last sync
+// for that group, caps the result per call, and advances the sync timestamp
+// atomically. The RPC is service-role only, so authenticated users cannot
+// invoke it directly through PostgREST.
 export const reportXp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ delta: z.number().int().min(1).max(500) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ groupId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { error } = await supabase.rpc("add_group_xp", { _delta: data.delta });
+    const { userId, supabase } = context;
+    // Verify caller is actually a member of this group under RLS before
+    // running the privileged sync.
+    const { data: membership, error: mErr } = await supabase
+      .from("group_members")
+      .select("id")
+      .eq("group_id", data.groupId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (mErr) throw new Error(mErr.message);
+    if (!membership) throw new Error("Not a member of this group");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: awarded, error } = await supabaseAdmin.rpc("sync_group_xp", {
+      _user_id: userId,
+      _group_id: data.groupId,
+    });
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { awarded: awarded ?? 0 };
   });

@@ -34,20 +34,20 @@ function GroupsPage() {
     enabled: !!activeId,
   });
 
-  // Sync XP earned since last visit as a bounded delta.
-  // The server caps each call at 500 XP so leaderboard scores can only grow
-  // via controlled increments — clients can no longer set an absolute value.
+  // Ask the server to sync XP for each group the user belongs to.
+  // The server derives XP from real activity (focus + habits) since the last
+  // sync per group and caps the award — clients no longer supply a delta.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const key = "limitless-xp-reported";
-    const reported = Number(localStorage.getItem(key) ?? "0") || 0;
-    const delta = Math.max(0, Math.min(500, state.xp - reported));
-    if (delta <= 0) return;
-    sync({ data: { delta } })
-      .then(() => localStorage.setItem(key, String(reported + delta)))
-      .catch(() => {});
+    const groups = q.data?.groups ?? [];
+    if (!groups.length) return;
+    (async () => {
+      for (const m of groups as Array<{ group_id: string }>) {
+        try { await sync({ data: { groupId: m.group_id } }); } catch {}
+      }
+      if (activeId) lbQ.refetch();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.xp]);
+  }, [q.data?.groups, state.xp]);
 
   return (
     <div className="min-h-screen">
