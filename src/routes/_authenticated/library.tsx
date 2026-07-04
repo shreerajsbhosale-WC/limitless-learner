@@ -21,7 +21,9 @@ export const Route = createFileRoute("/_authenticated/library")({
 
 function DashboardPage() {
   const { user } = useAuth();
-  const { xp, level, streak } = useProgress();
+  const { state, level } = useProgress();
+  const xp = state.xp;
+  const streak = state.streak;
   const list = useServerFn(listStudyKits);
   const del = useServerFn(deleteStudyKit);
   const qc = useQueryClient();
