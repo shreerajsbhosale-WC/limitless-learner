@@ -1,21 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Library, Trash2, FileText, Plus } from "lucide-react";
-import { SiteHeader } from "@/components/SiteHeader";
+import {
+  Search, Bell, Plus, Trash2, FileText, GraduationCap,
+  Clock, ClipboardList, Flame, Trophy, Target, Sparkles, ArrowRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CardListSkeleton } from "@/components/Skeletons";
 import { listStudyKits, deleteStudyKit } from "@/lib/library.functions";
+import { useAuth } from "@/hooks/use-auth";
+import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/library")({
-  head: () => ({ meta: [{ title: "My library — Limitless" }] }),
-  component: LibraryPage,
+  head: () => ({ meta: [{ title: "Dashboard — Limitless" }] }),
+  component: DashboardPage,
 });
 
-function LibraryPage() {
+function DashboardPage() {
+  const { user } = useAuth();
+  const { xp, level, streak } = useProgress();
   const list = useServerFn(listStudyKits);
   const del = useServerFn(deleteStudyKit);
   const qc = useQueryClient();
@@ -33,66 +39,307 @@ function LibraryPage() {
     },
   });
 
+  const firstName = user?.email?.split("@")[0]?.split(".")[0] ?? "there";
+  const displayName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+  const kitsCount = kits?.length ?? 0;
+
+  const stats = [
+    { label: "Kits saved", value: kitsCount, icon: GraduationCap, tint: "bg-primary/10 text-primary" },
+    { label: "Level", value: level, icon: Trophy, tint: "bg-accent/20 text-accent-foreground" },
+    { label: "XP earned", value: xp, icon: Sparkles, tint: "bg-[oklch(0.85_0.12_50/0.2)] text-[oklch(0.55_0.18_50)]" },
+    { label: "Streak", value: `${streak}d`, icon: Flame, tint: "bg-destructive/10 text-destructive" },
+  ];
+
+  // Mock weekly data (visual only — matches template reference)
+  const weekly = [3, 4.5, 2.5, 5, 3.5, 6, 4];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const maxHours = 6;
+
+  const achievements = [
+    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy },
+    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame },
+    { title: "Quick Learner", desc: "Finish a course in record time", icon: Sparkles },
+  ];
+
+  const dailyGoals = [
+    { label: "Complete 1 quiz", done: true },
+    { label: "Study 30 mins", done: true },
+    { label: "Read 1 chapter", done: false },
+    { label: "Revise notes", done: false },
+  ];
+  const doneCount = dailyGoals.filter((g) => g.done).length;
+  const goalPct = Math.round((doneCount / dailyGoals.length) * 100);
+
   return (
-    <div className="min-h-screen">
-      <SiteHeader />
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <Breadcrumbs items={[{ label: "Library" }]} />
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
-              <Library className="size-4" /> Your library
-            </p>
-            <h1 className="font-display text-4xl font-bold">Saved study kits</h1>
+    <main className="flex-1">
+      {/* Topbar */}
+      <div className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
+        <div className="flex items-center gap-3 px-4 md:px-8 h-16">
+          <div className="relative flex-1 max-w-xl ml-8">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search for courses, topics, quizzes…"
+              className="pl-10 bg-secondary/60 border-transparent focus-visible:bg-card"
+            />
           </div>
-          <Button asChild className="bg-gradient-primary text-primary-foreground">
-            <Link to="/study"><Plus className="size-4 mr-2" />New kit</Link>
+          <Button variant="ghost" size="icon" aria-label="Notifications">
+            <Bell className="size-5" />
+          </Button>
+          <div className="flex items-center gap-2 pl-2 border-l">
+            <div className="size-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground font-semibold text-sm">
+              {displayName.charAt(0)}
+            </div>
+            <div className="hidden sm:block text-sm leading-tight">
+              <div className="font-medium">{displayName}</div>
+              <div className="text-xs text-muted-foreground">Learner</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 md:px-8 py-8 max-w-[1600px] mx-auto">
+        {/* Welcome */}
+        <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="font-display text-3xl md:text-4xl font-bold">
+              Welcome back, {displayName}! <span className="inline-block">👋</span>
+            </h1>
+            <p className="text-muted-foreground mt-1">You're doing amazing! Keep going.</p>
+          </div>
+          <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow">
+            <Link to="/study"><Plus className="size-4 mr-2" />New study kit</Link>
           </Button>
         </div>
 
-        {isLoading ? (
-          <CardListSkeleton count={4} />
-        ) : !kits?.length ? (
-          <div className="rounded-2xl border border-dashed border-border p-16 text-center">
-            <FileText className="size-10 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No saved kits yet. Generate one and tap save to keep it here.</p>
-            <Button asChild className="bg-gradient-primary text-primary-foreground">
-              <Link to="/study">Create your first kit</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {kits.map((k) => (
-              <div key={k.id} className="rounded-2xl border border-border bg-gradient-card p-5 hover:border-primary/40 transition group hover-lift">
-                <div className="flex items-start justify-between gap-3">
-                  <Link to="/library/$kitId" params={{ kitId: k.id }} className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-widest text-primary mb-1">{k.source_type}</p>
-                    <h3 className="font-display text-lg font-semibold mb-1 truncate">{k.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(k.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-                    </p>
-                  </Link>
-                  <ConfirmDialog
-                    trigger={
-                      <button
-                        aria-label={`Delete kit ${k.title}`}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    }
-                    title="Delete this study kit?"
-                    description="This permanently removes the kit and its notes, flashcards, and quiz."
-                    confirmLabel="Delete"
-                    destructive
-                    onConfirm={() => remove.mutate(k.id)}
-                  />
+        {/* Stat cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
+          {stats.map((s) => (
+            <div key={s.label} className="rounded-2xl bg-card border p-5 hover-lift">
+              <div className="flex items-center gap-4">
+                <div className={`size-12 rounded-xl grid place-items-center ${s.tint}`}>
+                  <s.icon className="size-6" />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">{s.label}</div>
+                  <div className="font-display text-2xl font-bold">{s.value}</div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Main grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left 2 cols */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Continue Learning */}
+            <section className="rounded-2xl bg-card border p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-display text-lg font-semibold">Continue learning</h2>
+                <Link to="/library" className="text-sm text-primary hover:underline">View all</Link>
+              </div>
+              {isLoading ? (
+                <CardListSkeleton count={3} />
+              ) : !kits?.length ? (
+                <div className="rounded-xl border border-dashed p-10 text-center">
+                  <FileText className="size-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground mb-4">
+                    No kits yet. Upload a PDF and let Limitless build your first study kit.
+                  </p>
+                  <Button asChild className="bg-gradient-primary text-primary-foreground">
+                    <Link to="/study">Create your first kit</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {kits.slice(0, 4).map((k, i) => {
+                    const pct = 25 + ((i * 17) % 70);
+                    return (
+                      <div key={k.id} className="group rounded-xl border bg-gradient-card p-4 hover:border-primary/40 transition">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <Link to="/library/$kitId" params={{ kitId: k.id }} className="flex-1 min-w-0">
+                            <p className="text-[10px] uppercase tracking-widest text-primary mb-1">{k.source_type}</p>
+                            <h3 className="font-display font-semibold truncate">{k.title}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {new Date(k.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                            </p>
+                          </Link>
+                          <ConfirmDialog
+                            trigger={
+                              <button
+                                aria-label={`Delete kit ${k.title}`}
+                                className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="size-4" />
+                              </button>
+                            }
+                            title="Delete this study kit?"
+                            description="This permanently removes the kit and its notes, flashcards, and quiz."
+                            confirmLabel="Delete"
+                            destructive
+                            onConfirm={() => remove.mutate(k.id)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-gradient-primary" style={{ width: `${pct}%` }} />
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">{pct}% complete</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Weekly activity + Upcoming */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <section className="rounded-2xl bg-card border p-6">
+                <h2 className="font-display text-lg font-semibold mb-4">Weekly activity</h2>
+                <div className="flex items-end gap-3 h-40">
+                  {weekly.map((h, i) => (
+                    <div key={days[i]} className="flex-1 flex flex-col items-center gap-2">
+                      <div className="w-full flex-1 flex items-end">
+                        <div
+                          className="w-full rounded-t-md bg-gradient-primary opacity-90 hover:opacity-100 transition"
+                          style={{ height: `${(h / maxHours) * 100}%` }}
+                          aria-label={`${days[i]}: ${h} hours`}
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{days[i]}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-2xl bg-card border p-6">
+                <h2 className="font-display text-lg font-semibold mb-4">Upcoming</h2>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <ClipboardList className="size-4 text-primary" />
+                    <div className="flex-1 text-sm">
+                      <div className="font-medium">Practice quiz</div>
+                      <div className="text-xs text-muted-foreground">Due in 2 days</div>
+                    </div>
+                  </li>
+                  <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Clock className="size-4 text-accent" />
+                    <div className="flex-1 text-sm">
+                      <div className="font-medium">Focus session</div>
+                      <div className="text-xs text-muted-foreground">Today · 25 min</div>
+                    </div>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/focus">Start</Link>
+                    </Button>
+                  </li>
+                  <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Target className="size-4 text-destructive" />
+                    <div className="flex-1 text-sm">
+                      <div className="font-medium">Review flashcards</div>
+                      <div className="text-xs text-muted-foreground">Due today</div>
+                    </div>
+                  </li>
+                </ul>
+              </section>
+            </div>
           </div>
-        )}
-      </main>
+
+          {/* Right column */}
+          <aside className="space-y-6">
+            {/* Daily goal ring */}
+            <section className="rounded-2xl bg-card border p-6">
+              <h2 className="font-display text-lg font-semibold mb-4">Daily goal</h2>
+              <div className="flex flex-col items-center">
+                <ProgressRing pct={goalPct} />
+                <p className="mt-4 text-sm text-center text-muted-foreground">
+                  Great progress! <br />
+                  <span className="text-foreground font-medium">
+                    {dailyGoals.length - doneCount} tasks left for today
+                  </span>
+                </p>
+              </div>
+              <ul className="mt-5 space-y-2">
+                {dailyGoals.map((g) => (
+                  <li key={g.label} className="flex items-center gap-3 text-sm">
+                    <span className={`size-5 rounded border grid place-items-center ${g.done ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                      {g.done && <span className="text-[10px]">✓</span>}
+                    </span>
+                    <span className={g.done ? "text-muted-foreground line-through" : ""}>{g.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {/* Achievements */}
+            <section className="rounded-2xl bg-card border p-6">
+              <h2 className="font-display text-lg font-semibold mb-4">Achievements</h2>
+              <ul className="space-y-3">
+                {achievements.map((a) => (
+                  <li key={a.title} className="flex items-start gap-3">
+                    <div className="size-9 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                      <a.icon className="size-4" />
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-medium">{a.title}</div>
+                      <div className="text-xs text-muted-foreground">{a.desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {/* AI Tutor */}
+            <section className="rounded-2xl border p-6 bg-gradient-primary text-primary-foreground shadow-glow">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-widest opacity-90 mb-2">
+                <Sparkles className="size-4" /> AI Tutor
+              </div>
+              <h3 className="font-display text-xl font-bold mb-2">
+                Hi {displayName}! Need help?
+              </h3>
+              <p className="text-sm opacity-90 mb-4">
+                Ask anything about your notes and I'll break it down.
+              </p>
+              <Button asChild variant="secondary" className="w-full">
+                <Link to="/assistant">
+                  Open assistant <ArrowRight className="size-4 ml-1" />
+                </Link>
+              </Button>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function ProgressRing({ pct }: { pct: number }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const offset = c - (pct / 100) * c;
+  return (
+    <div className="relative size-32">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r={r} strokeWidth="10" className="stroke-muted" fill="none" />
+        <circle
+          cx="60" cy="60" r={r} strokeWidth="10" fill="none"
+          strokeLinecap="round"
+          stroke="url(#ring-grad)"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+        />
+        <defs>
+          <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="oklch(0.62 0.18 255)" />
+            <stop offset="100%" stopColor="oklch(0.78 0.13 175)" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="text-center">
+          <div className="font-display text-2xl font-bold">{pct}%</div>
+        </div>
+      </div>
     </div>
   );
 }
