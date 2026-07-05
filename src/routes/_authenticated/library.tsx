@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Bell, Plus, Trash2, FileText, GraduationCap,
-  Clock, ClipboardList, Flame, Trophy, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
+  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
