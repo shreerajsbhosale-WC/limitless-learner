@@ -279,7 +279,7 @@ function DashboardPage() {
               <ul className="space-y-3">
                 {achievements.map((a) => (
                   <li key={a.title} className="flex items-start gap-3">
-                    <div className="size-9 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                    <div className={`size-9 rounded-full grid place-items-center shrink-0 ${a.tint}`}>
                       <a.icon className="size-4" />
                     </div>
                     <div className="text-sm">
