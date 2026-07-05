@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Bell, Plus, Trash2, FileText, GraduationCap,
-  Clock, ClipboardList, Flame, Trophy, Target, Sparkles, ArrowRight,
+  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,16 @@ export const Route = createFileRoute("/_authenticated/library")({
   head: () => ({ meta: [{ title: "Dashboard — Limitless" }] }),
   component: DashboardPage,
 });
+
+// Pastel palette for course cards (matches reference)
+const coursePalettes = [
+  { bg: "bg-[oklch(0.28_0.08_270)]", text: "text-white", emoji: "🪐" },
+  { bg: "bg-[oklch(0.88_0.08_150)]", text: "text-[oklch(0.3_0.05_150)]", emoji: "🧬" },
+  { bg: "bg-[oklch(0.92_0.09_90)]", text: "text-[oklch(0.35_0.05_80)]", emoji: "📐" },
+  { bg: "bg-[oklch(0.9_0.05_60)]", text: "text-[oklch(0.32_0.05_60)]", emoji: "🏛️" },
+  { bg: "bg-[oklch(0.87_0.07_200)]", text: "text-[oklch(0.3_0.05_220)]", emoji: "⚗️" },
+  { bg: "bg-[oklch(0.9_0.08_350)]", text: "text-[oklch(0.32_0.05_350)]", emoji: "📚" },
+];
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -46,21 +56,21 @@ function DashboardPage() {
   const kitsCount = kits?.length ?? 0;
 
   const stats = [
-    { label: "Kits saved", value: kitsCount, icon: GraduationCap, tint: "bg-primary/10 text-primary" },
-    { label: "Level", value: level, icon: Trophy, tint: "bg-accent/20 text-accent-foreground" },
-    { label: "XP earned", value: xp, icon: Sparkles, tint: "bg-[oklch(0.85_0.12_50/0.2)] text-[oklch(0.55_0.18_50)]" },
-    { label: "Streak", value: `${streak}d`, icon: Flame, tint: "bg-destructive/10 text-destructive" },
+    { label: "Courses Enrolled", value: kitsCount, icon: BookOpen, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
+    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-[oklch(0.9_0.08_220)] text-[oklch(0.45_0.18_230)]" },
+    { label: "Quizzes Taken", value: 28, icon: HelpCircle, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
+    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
   ];
 
-  // Mock weekly data (visual only — matches template reference)
+  // Weekly hours (visual only)
   const weekly = [3, 4.5, 2.5, 5, 3.5, 6, 4];
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const maxHours = 6;
 
   const achievements = [
-    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy },
-    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame },
-    { title: "Quick Learner", desc: "Finish a course in record time", icon: Sparkles },
+    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
+    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
+    { title: "Quick Learner", desc: "Finish a course in record time", icon: Zap, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
   ];
 
   const dailyGoals = [
@@ -153,41 +163,44 @@ function DashboardPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {kits.slice(0, 4).map((k, i) => {
                     const pct = 25 + ((i * 17) % 70);
+                    const p = coursePalettes[i % coursePalettes.length];
                     return (
-                      <div key={k.id} className="group rounded-xl border bg-gradient-card p-4 hover:border-primary/40 transition">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <Link to="/library/$kitId" params={{ kitId: k.id }} className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-primary mb-1">{k.source_type}</p>
-                            <h3 className="font-display font-semibold truncate">{k.title}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {new Date(k.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                            </p>
-                          </Link>
-                          <ConfirmDialog
-                            trigger={
-                              <button
-                                aria-label={`Delete kit ${k.title}`}
-                                className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="size-4" />
-                              </button>
-                            }
-                            title="Delete this study kit?"
-                            description="This permanently removes the kit and its notes, flashcards, and quiz."
-                            confirmLabel="Delete"
-                            destructive
-                            onConfirm={() => remove.mutate(k.id)}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                            <div className="h-full bg-gradient-primary" style={{ width: `${pct}%` }} />
+                      <div key={k.id} className="group relative rounded-2xl border bg-card overflow-hidden hover-lift transition">
+                        <Link to="/library/$kitId" params={{ kitId: k.id }} className="block">
+                          <div className={`h-28 ${p.bg} ${p.text} grid place-items-center text-5xl`}>
+                            <span>{p.emoji}</span>
                           </div>
-                          <div className="text-[11px] text-muted-foreground">{pct}% complete</div>
-                        </div>
+                          <div className="p-4">
+                            <h3 className="font-display font-semibold truncate">{k.title}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                              {k.source_type} · {new Date(k.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                            </p>
+                            <div className="mt-3 space-y-1">
+                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className="h-full bg-gradient-primary" style={{ width: `${pct}%` }} />
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">{pct}% complete</div>
+                            </div>
+                          </div>
+                        </Link>
+                        <ConfirmDialog
+                          trigger={
+                            <button
+                              aria-label={`Delete kit ${k.title}`}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition size-7 rounded-full bg-white/80 text-muted-foreground hover:text-destructive grid place-items-center"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          }
+                          title="Delete this study kit?"
+                          description="This permanently removes the kit and its notes, flashcards, and quiz."
+                          confirmLabel="Delete"
+                          destructive
+                          onConfirm={() => remove.mutate(k.id)}
+                        />
                       </div>
                     );
                   })}
@@ -198,21 +211,8 @@ function DashboardPage() {
             {/* Weekly activity + Upcoming */}
             <div className="grid gap-6 md:grid-cols-2">
               <section className="rounded-2xl bg-card border p-6">
-                <h2 className="font-display text-lg font-semibold mb-4">Weekly activity</h2>
-                <div className="flex items-stretch gap-3 h-40">
-                  {weekly.map((h, i) => (
-                    <div key={days[i]} className="flex-1 flex flex-col items-center gap-2 h-full">
-                      <div className="w-full flex-1 flex items-end">
-                        <div
-                          className="w-full rounded-t-md bg-gradient-primary opacity-90 hover:opacity-100 transition"
-                          style={{ height: `${(h / maxHours) * 100}%` }}
-                          aria-label={`${days[i]}: ${h} hours`}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{days[i]}</span>
-                    </div>
-                  ))}
-                </div>
+                <h2 className="font-display text-lg font-semibold mb-4">Weekly learning activity</h2>
+                <WeeklyLineChart values={weekly} labels={days} max={maxHours} />
               </section>
 
               <section className="rounded-2xl bg-card border p-6">
@@ -279,7 +279,7 @@ function DashboardPage() {
               <ul className="space-y-3">
                 {achievements.map((a) => (
                   <li key={a.title} className="flex items-start gap-3">
-                    <div className="size-9 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                    <div className={`size-9 rounded-full grid place-items-center shrink-0 ${a.tint}`}>
                       <a.icon className="size-4" />
                     </div>
                     <div className="text-sm">
@@ -341,6 +341,52 @@ function ProgressRing({ pct }: { pct: number }) {
         <div className="text-center">
           <div className="font-display text-2xl font-bold">{pct}%</div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function WeeklyLineChart({ values, labels, max }: { values: number[]; labels: string[]; max: number }) {
+  const W = 320;
+  const H = 140;
+  const padX = 24;
+  const padY = 16;
+  const stepX = (W - padX * 2) / (values.length - 1);
+  const points = values.map((v, i) => {
+    const x = padX + i * stepX;
+    const y = padY + (1 - v / max) * (H - padY * 2);
+    return [x, y] as const;
+  });
+  // Smooth path via quadratic mid-points
+  let d = `M ${points[0][0]} ${points[0][1]}`;
+  for (let i = 1; i < points.length; i++) {
+    const [x0, y0] = points[i - 1];
+    const [x1, y1] = points[i];
+    const mx = (x0 + x1) / 2;
+    d += ` Q ${x0} ${y0}, ${mx} ${(y0 + y1) / 2} T ${x1} ${y1}`;
+  }
+  const area = `${d} L ${points[points.length - 1][0]} ${H - padY} L ${points[0][0]} ${H - padY} Z`;
+  return (
+    <div className="w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-40" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wk-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line key={f} x1={padX} x2={W - padX} y1={padY + f * (H - padY * 2)} y2={padY + f * (H - padY * 2)}
+            stroke="currentColor" className="text-border" strokeDasharray="3 4" />
+        ))}
+        <path d={area} fill="url(#wk-area)" />
+        <path d={d} fill="none" stroke="oklch(0.58 0.22 285)" strokeWidth="2.5" strokeLinecap="round" />
+        {points.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="4" fill="white" stroke="oklch(0.58 0.22 285)" strokeWidth="2" />
+        ))}
+      </svg>
+      <div className="flex justify-between mt-1 px-1 text-[11px] text-muted-foreground">
+        {labels.map((l) => <span key={l}>{l}</span>)}
       </div>
     </div>
   );
