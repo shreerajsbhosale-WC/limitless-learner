@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Bell, Plus, Trash2, FileText, GraduationCap,
-  Clock, ClipboardList, Flame, Trophy, Target, Sparkles, ArrowRight,
+  Clock, ClipboardList, Flame, Trophy, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,16 @@ export const Route = createFileRoute("/_authenticated/library")({
   head: () => ({ meta: [{ title: "Dashboard — Limitless" }] }),
   component: DashboardPage,
 });
+
+// Pastel palette for course cards (matches reference)
+const coursePalettes = [
+  { bg: "bg-[oklch(0.28_0.08_270)]", text: "text-white", emoji: "🪐" },
+  { bg: "bg-[oklch(0.88_0.08_150)]", text: "text-[oklch(0.3_0.05_150)]", emoji: "🧬" },
+  { bg: "bg-[oklch(0.92_0.09_90)]", text: "text-[oklch(0.35_0.05_80)]", emoji: "📐" },
+  { bg: "bg-[oklch(0.9_0.05_60)]", text: "text-[oklch(0.32_0.05_60)]", emoji: "🏛️" },
+  { bg: "bg-[oklch(0.87_0.07_200)]", text: "text-[oklch(0.3_0.05_220)]", emoji: "⚗️" },
+  { bg: "bg-[oklch(0.9_0.08_350)]", text: "text-[oklch(0.32_0.05_350)]", emoji: "📚" },
+];
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -46,21 +56,21 @@ function DashboardPage() {
   const kitsCount = kits?.length ?? 0;
 
   const stats = [
-    { label: "Kits saved", value: kitsCount, icon: GraduationCap, tint: "bg-primary/10 text-primary" },
-    { label: "Level", value: level, icon: Trophy, tint: "bg-accent/20 text-accent-foreground" },
-    { label: "XP earned", value: xp, icon: Sparkles, tint: "bg-[oklch(0.85_0.12_50/0.2)] text-[oklch(0.55_0.18_50)]" },
-    { label: "Streak", value: `${streak}d`, icon: Flame, tint: "bg-destructive/10 text-destructive" },
+    { label: "Courses Enrolled", value: kitsCount, icon: BookOpen, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
+    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-[oklch(0.9_0.08_220)] text-[oklch(0.45_0.18_230)]" },
+    { label: "Quizzes Taken", value: 28, icon: HelpCircle, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
+    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
   ];
 
-  // Mock weekly data (visual only — matches template reference)
+  // Weekly hours (visual only)
   const weekly = [3, 4.5, 2.5, 5, 3.5, 6, 4];
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const maxHours = 6;
 
   const achievements = [
-    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy },
-    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame },
-    { title: "Quick Learner", desc: "Finish a course in record time", icon: Sparkles },
+    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
+    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
+    { title: "Quick Learner", desc: "Finish a course in record time", icon: Zap, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
   ];
 
   const dailyGoals = [
