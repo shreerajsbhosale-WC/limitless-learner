@@ -168,7 +168,7 @@ function DashboardPage() {
                     const pct = 25 + ((i * 17) % 70);
                     const p = coursePalettes[i % coursePalettes.length];
                     return (
-                      <div key={k.id} className="group rounded-2xl border bg-card overflow-hidden hover-lift transition">
+                      <div key={k.id} className="group relative rounded-2xl border bg-card overflow-hidden hover-lift transition">
                         <Link to="/library/$kitId" params={{ kitId: k.id }} className="block">
                           <div className={`h-28 ${p.bg} ${p.text} grid place-items-center text-5xl`}>
                             <span>{p.emoji}</span>
