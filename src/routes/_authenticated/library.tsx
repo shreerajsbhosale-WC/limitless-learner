@@ -163,41 +163,44 @@ function DashboardPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {kits.slice(0, 4).map((k, i) => {
                     const pct = 25 + ((i * 17) % 70);
+                    const p = coursePalettes[i % coursePalettes.length];
                     return (
-                      <div key={k.id} className="group rounded-xl border bg-gradient-card p-4 hover:border-primary/40 transition">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <Link to="/library/$kitId" params={{ kitId: k.id }} className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-primary mb-1">{k.source_type}</p>
-                            <h3 className="font-display font-semibold truncate">{k.title}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {new Date(k.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                            </p>
-                          </Link>
-                          <ConfirmDialog
-                            trigger={
-                              <button
-                                aria-label={`Delete kit ${k.title}`}
-                                className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="size-4" />
-                              </button>
-                            }
-                            title="Delete this study kit?"
-                            description="This permanently removes the kit and its notes, flashcards, and quiz."
-                            confirmLabel="Delete"
-                            destructive
-                            onConfirm={() => remove.mutate(k.id)}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                            <div className="h-full bg-gradient-primary" style={{ width: `${pct}%` }} />
+                      <div key={k.id} className="group rounded-2xl border bg-card overflow-hidden hover-lift transition">
+                        <Link to="/library/$kitId" params={{ kitId: k.id }} className="block">
+                          <div className={`h-28 ${p.bg} ${p.text} grid place-items-center text-5xl`}>
+                            <span>{p.emoji}</span>
                           </div>
-                          <div className="text-[11px] text-muted-foreground">{pct}% complete</div>
-                        </div>
+                          <div className="p-4">
+                            <h3 className="font-display font-semibold truncate">{k.title}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                              {k.source_type} · {new Date(k.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                            </p>
+                            <div className="mt-3 space-y-1">
+                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className="h-full bg-gradient-primary" style={{ width: `${pct}%` }} />
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">{pct}% complete</div>
+                            </div>
+                          </div>
+                        </Link>
+                        <ConfirmDialog
+                          trigger={
+                            <button
+                              aria-label={`Delete kit ${k.title}`}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition size-7 rounded-full bg-white/80 text-muted-foreground hover:text-destructive grid place-items-center"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          }
+                          title="Delete this study kit?"
+                          description="This permanently removes the kit and its notes, flashcards, and quiz."
+                          confirmLabel="Delete"
+                          destructive
+                          onConfirm={() => remove.mutate(k.id)}
+                        />
                       </div>
                     );
                   })}
