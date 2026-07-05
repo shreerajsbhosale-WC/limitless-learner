@@ -211,21 +211,8 @@ function DashboardPage() {
             {/* Weekly activity + Upcoming */}
             <div className="grid gap-6 md:grid-cols-2">
               <section className="rounded-2xl bg-card border p-6">
-                <h2 className="font-display text-lg font-semibold mb-4">Weekly activity</h2>
-                <div className="flex items-stretch gap-3 h-40">
-                  {weekly.map((h, i) => (
-                    <div key={days[i]} className="flex-1 flex flex-col items-center gap-2 h-full">
-                      <div className="w-full flex-1 flex items-end">
-                        <div
-                          className="w-full rounded-t-md bg-gradient-primary opacity-90 hover:opacity-100 transition"
-                          style={{ height: `${(h / maxHours) * 100}%` }}
-                          aria-label={`${days[i]}: ${h} hours`}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{days[i]}</span>
-                    </div>
-                  ))}
-                </div>
+                <h2 className="font-display text-lg font-semibold mb-4">Weekly learning activity</h2>
+                <WeeklyLineChart values={weekly} labels={days} max={maxHours} />
               </section>
 
               <section className="rounded-2xl bg-card border p-6">
