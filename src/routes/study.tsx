@@ -193,9 +193,11 @@ function StudyPage() {
             {error && <p className="mt-4 text-sm text-destructive text-center">{error}</p>}
 
             {!user && (
-              <p className="mt-6 text-center text-xs text-muted-foreground">
-                <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to save your kits and sync across devices.
-              </p>
+              <div className="mt-6 rounded-xl border border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
+                You're browsing as a <span className="text-foreground font-medium">guest</span> — upload a PDF, paste text, or drop a video link and everything works.
+                Your kit just won't be saved when you leave.{" "}
+                <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to keep it in your library.
+              </div>
             )}
           </div>
         )}
@@ -205,6 +207,12 @@ function StudyPage() {
             <header className="mb-8">
               <p className="text-xs uppercase tracking-widest text-primary mb-2">Your study kit</p>
               <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight">{materials.title}</h1>
+              {!user && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Guest mode — this kit isn't saved.{" "}
+                  <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to save it to your library.
+                </p>
+              )}
             </header>
             <Tabs defaultValue="notes" className="w-full">
               <TabsList className="grid grid-cols-4 max-w-xl mb-8 bg-secondary">
