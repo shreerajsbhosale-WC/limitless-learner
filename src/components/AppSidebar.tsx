@@ -8,7 +8,7 @@ import {
   MessageSquare,
   Trophy,
   StickyNote,
-  Settings,
+  
   LogOut,
   GraduationCap,
 } from "lucide-react";

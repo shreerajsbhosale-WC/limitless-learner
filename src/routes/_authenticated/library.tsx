@@ -19,14 +19,14 @@ export const Route = createFileRoute("/_authenticated/library")({
   component: DashboardPage,
 });
 
-// Pastel palette for course cards (matches reference)
+// Glass tints for kit cards (design-system tokens only)
 const coursePalettes = [
-  { bg: "bg-[oklch(0.28_0.08_270)]", text: "text-white", emoji: "🪐" },
-  { bg: "bg-[oklch(0.88_0.08_150)]", text: "text-[oklch(0.3_0.05_150)]", emoji: "🧬" },
-  { bg: "bg-[oklch(0.92_0.09_90)]", text: "text-[oklch(0.35_0.05_80)]", emoji: "📐" },
-  { bg: "bg-[oklch(0.9_0.05_60)]", text: "text-[oklch(0.32_0.05_60)]", emoji: "🏛️" },
-  { bg: "bg-[oklch(0.87_0.07_200)]", text: "text-[oklch(0.3_0.05_220)]", emoji: "⚗️" },
-  { bg: "bg-[oklch(0.9_0.08_350)]", text: "text-[oklch(0.32_0.05_350)]", emoji: "📚" },
+  { bg: "bg-primary/20", text: "text-primary-foreground", emoji: "🪐" },
+  { bg: "bg-accent/20", text: "text-accent-foreground", emoji: "🧬" },
+  { bg: "bg-secondary", text: "text-secondary-foreground", emoji: "📐" },
+  { bg: "bg-primary/10", text: "text-foreground", emoji: "🏛️" },
+  { bg: "bg-accent/10", text: "text-foreground", emoji: "⚗️" },
+  { bg: "bg-muted", text: "text-foreground", emoji: "📚" },
 ];
 
 function DashboardPage() {
@@ -56,10 +56,10 @@ function DashboardPage() {
   const kitsCount = kits?.length ?? 0;
 
   const stats = [
-    { label: "Courses Enrolled", value: kitsCount, icon: BookOpen, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
-    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-[oklch(0.9_0.08_220)] text-[oklch(0.45_0.18_230)]" },
-    { label: "Quizzes Taken", value: 28, icon: HelpCircle, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
-    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
+    { label: "Study Kits", value: kitsCount, icon: BookOpen, tint: "bg-primary/15 text-primary" },
+    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-accent/15 text-accent" },
+    { label: "Total XP", value: xp, icon: HelpCircle, tint: "bg-primary/15 text-primary" },
+    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-destructive/15 text-destructive" },
   ];
 
   // Weekly hours (visual only)
@@ -68,9 +68,9 @@ function DashboardPage() {
   const maxHours = 6;
 
   const achievements = [
-    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
-    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
-    { title: "Quick Learner", desc: "Finish a course in record time", icon: Zap, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
+    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-primary/15 text-primary" },
+    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-destructive/15 text-destructive" },
+    { title: "Quick Learner", desc: "Finish a kit in record time", icon: Zap, tint: "bg-accent/15 text-accent" },
   ];
 
   const dailyGoals = [
