@@ -212,7 +212,7 @@ function DashboardPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <section className="rounded-2xl bg-card border p-6">
                 <h2 className="font-display text-lg font-semibold mb-4">Weekly learning activity</h2>
-                <WeeklyLineChart values={weekly} labels={days} max={maxHours} />
+                <WeeklyBars values={weekly} labels={days} max={maxHours} />
               </section>
 
               <section className="rounded-2xl bg-card border p-6">
