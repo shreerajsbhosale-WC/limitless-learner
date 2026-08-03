@@ -28,14 +28,13 @@ import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
   { title: "Dashboard", url: "/library", icon: LayoutDashboard },
-  { title: "My Courses", url: "/study", icon: BookOpen },
-  { title: "Assignments", url: "/habits", icon: ClipboardList },
-  { title: "Quizzes", url: "/focus", icon: HelpCircle },
-  { title: "Calendar", url: "/weekly", icon: Calendar },
-  { title: "AI Tutor", url: "/assistant", icon: MessageSquare },
-  { title: "Achievements", url: "/groups", icon: Trophy },
-  { title: "Notes", url: "/flowchart", icon: StickyNote },
-  { title: "Settings", url: "/library", icon: Settings },
+  { title: "Study", url: "/study", icon: BookOpen },
+  { title: "Habits", url: "/habits", icon: ClipboardList },
+  { title: "Focus", url: "/focus", icon: HelpCircle },
+  { title: "Weekly", url: "/weekly", icon: Calendar },
+  { title: "Assistant", url: "/assistant", icon: MessageSquare },
+  { title: "Groups", url: "/groups", icon: Trophy },
+  { title: "Flowcharts", url: "/flowchart", icon: StickyNote },
 ] as const;
 
 export function AppSidebar() {
