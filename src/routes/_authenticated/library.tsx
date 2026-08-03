@@ -346,48 +346,16 @@ function ProgressRing({ pct }: { pct: number }) {
   );
 }
 
-function WeeklyLineChart({ values, labels, max }: { values: number[]; labels: string[]; max: number }) {
-  const W = 320;
-  const H = 140;
-  const padX = 24;
-  const padY = 16;
-  const stepX = (W - padX * 2) / (values.length - 1);
-  const points = values.map((v, i) => {
-    const x = padX + i * stepX;
-    const y = padY + (1 - v / max) * (H - padY * 2);
-    return [x, y] as const;
-  });
-  // Smooth path via quadratic mid-points
-  let d = `M ${points[0][0]} ${points[0][1]}`;
-  for (let i = 1; i < points.length; i++) {
-    const [x0, y0] = points[i - 1];
-    const [x1, y1] = points[i];
-    const mx = (x0 + x1) / 2;
-    d += ` Q ${x0} ${y0}, ${mx} ${(y0 + y1) / 2} T ${x1} ${y1}`;
-  }
-  const area = `${d} L ${points[points.length - 1][0]} ${H - padY} L ${points[0][0]} ${H - padY} Z`;
+function WeeklyBars({ values, labels, max }: { values: number[]; labels: string[]; max: number }) {
   return (
-    <div className="w-full">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-40" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="wk-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0.25, 0.5, 0.75].map((f) => (
-          <line key={f} x1={padX} x2={W - padX} y1={padY + f * (H - padY * 2)} y2={padY + f * (H - padY * 2)}
-            stroke="currentColor" className="text-border" strokeDasharray="3 4" />
-        ))}
-        <path d={area} fill="url(#wk-area)" />
-        <path d={d} fill="none" stroke="oklch(0.58 0.22 285)" strokeWidth="2.5" strokeLinecap="round" />
-        {points.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="4" fill="white" stroke="oklch(0.58 0.22 285)" strokeWidth="2" />
-        ))}
-      </svg>
-      <div className="flex justify-between mt-1 px-1 text-[11px] text-muted-foreground">
-        {labels.map((l) => <span key={l}>{l}</span>)}
-      </div>
+    <div className="flex items-end justify-between gap-3 h-40">
+      {values.map((v, i) => (
+        <div key={labels[i]} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+          <span className="text-[11px] text-muted-foreground">{v}h</span>
+          <div className="w-full rounded-t-lg bg-gradient-primary" style={{ height: `${(v / max) * 100}%` }} />
+          <span className="text-[11px] text-muted-foreground">{labels[i]}</span>
+        </div>
+      ))}
     </div>
   );
 }
