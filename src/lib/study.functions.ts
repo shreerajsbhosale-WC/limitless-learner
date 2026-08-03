@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const inputSchema = z.object({
   text: z.string().min(20).max(120_000),
@@ -60,7 +59,6 @@ export type StudyMaterials = {
 };
 
 export const generateStudyMaterials = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<StudyMaterials> => {
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -132,7 +130,6 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export const fetchVideoMeta = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ url: z.string().url().max(500) }).parse(d))
   .handler(async ({ data }) => {
     const ytId = extractYouTubeId(data.url);
@@ -153,7 +150,6 @@ export const fetchVideoMeta = createServerFn({ method: "POST" })
   });
 
 export const explainMistake = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({
       question: z.string().max(2000),
