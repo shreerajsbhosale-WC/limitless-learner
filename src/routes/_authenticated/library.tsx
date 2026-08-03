@@ -19,14 +19,14 @@ export const Route = createFileRoute("/_authenticated/library")({
   component: DashboardPage,
 });
 
-// Pastel palette for course cards (matches reference)
+// Glass tints for kit cards (design-system tokens only)
 const coursePalettes = [
-  { bg: "bg-[oklch(0.28_0.08_270)]", text: "text-white", emoji: "🪐" },
-  { bg: "bg-[oklch(0.88_0.08_150)]", text: "text-[oklch(0.3_0.05_150)]", emoji: "🧬" },
-  { bg: "bg-[oklch(0.92_0.09_90)]", text: "text-[oklch(0.35_0.05_80)]", emoji: "📐" },
-  { bg: "bg-[oklch(0.9_0.05_60)]", text: "text-[oklch(0.32_0.05_60)]", emoji: "🏛️" },
-  { bg: "bg-[oklch(0.87_0.07_200)]", text: "text-[oklch(0.3_0.05_220)]", emoji: "⚗️" },
-  { bg: "bg-[oklch(0.9_0.08_350)]", text: "text-[oklch(0.32_0.05_350)]", emoji: "📚" },
+  { bg: "bg-primary/20", text: "text-primary-foreground", emoji: "🪐" },
+  { bg: "bg-accent/20", text: "text-accent-foreground", emoji: "🧬" },
+  { bg: "bg-secondary", text: "text-secondary-foreground", emoji: "📐" },
+  { bg: "bg-primary/10", text: "text-foreground", emoji: "🏛️" },
+  { bg: "bg-accent/10", text: "text-foreground", emoji: "⚗️" },
+  { bg: "bg-muted", text: "text-foreground", emoji: "📚" },
 ];
 
 function DashboardPage() {
@@ -56,10 +56,10 @@ function DashboardPage() {
   const kitsCount = kits?.length ?? 0;
 
   const stats = [
-    { label: "Courses Enrolled", value: kitsCount, icon: BookOpen, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
-    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-[oklch(0.9_0.08_220)] text-[oklch(0.45_0.18_230)]" },
-    { label: "Quizzes Taken", value: 28, icon: HelpCircle, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
-    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
+    { label: "Study Kits", value: kitsCount, icon: BookOpen, tint: "bg-primary/15 text-primary" },
+    { label: "Hours Learned", value: "48.5", icon: Clock, tint: "bg-accent/15 text-accent" },
+    { label: "Total XP", value: xp, icon: HelpCircle, tint: "bg-primary/15 text-primary" },
+    { label: "Current Streak", value: `${streak || 7} Days`, icon: Flame, tint: "bg-destructive/15 text-destructive" },
   ];
 
   // Weekly hours (visual only)
@@ -68,9 +68,9 @@ function DashboardPage() {
   const maxHours = 6;
 
   const achievements = [
-    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-[oklch(0.9_0.1_40)] text-[oklch(0.55_0.2_40)]" },
-    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-[oklch(0.9_0.09_150)] text-[oklch(0.4_0.15_155)]" },
-    { title: "Quick Learner", desc: "Finish a course in record time", icon: Zap, tint: "bg-[oklch(0.92_0.08_280)] text-[oklch(0.45_0.2_285)]" },
+    { title: "Quiz Master", desc: "Score 90% in 5 quizzes", icon: Trophy, tint: "bg-primary/15 text-primary" },
+    { title: "Consistent Learner", desc: "Study 7 days in a row", icon: Flame, tint: "bg-destructive/15 text-destructive" },
+    { title: "Quick Learner", desc: "Finish a kit in record time", icon: Zap, tint: "bg-accent/15 text-accent" },
   ];
 
   const dailyGoals = [
@@ -212,7 +212,7 @@ function DashboardPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <section className="rounded-2xl bg-card border p-6">
                 <h2 className="font-display text-lg font-semibold mb-4">Weekly learning activity</h2>
-                <WeeklyLineChart values={weekly} labels={days} max={maxHours} />
+                <WeeklyBars values={weekly} labels={days} max={maxHours} />
               </section>
 
               <section className="rounded-2xl bg-card border p-6">
@@ -346,48 +346,16 @@ function ProgressRing({ pct }: { pct: number }) {
   );
 }
 
-function WeeklyLineChart({ values, labels, max }: { values: number[]; labels: string[]; max: number }) {
-  const W = 320;
-  const H = 140;
-  const padX = 24;
-  const padY = 16;
-  const stepX = (W - padX * 2) / (values.length - 1);
-  const points = values.map((v, i) => {
-    const x = padX + i * stepX;
-    const y = padY + (1 - v / max) * (H - padY * 2);
-    return [x, y] as const;
-  });
-  // Smooth path via quadratic mid-points
-  let d = `M ${points[0][0]} ${points[0][1]}`;
-  for (let i = 1; i < points.length; i++) {
-    const [x0, y0] = points[i - 1];
-    const [x1, y1] = points[i];
-    const mx = (x0 + x1) / 2;
-    d += ` Q ${x0} ${y0}, ${mx} ${(y0 + y1) / 2} T ${x1} ${y1}`;
-  }
-  const area = `${d} L ${points[points.length - 1][0]} ${H - padY} L ${points[0][0]} ${H - padY} Z`;
+function WeeklyBars({ values, labels, max }: { values: number[]; labels: string[]; max: number }) {
   return (
-    <div className="w-full">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-40" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="wk-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="oklch(0.58 0.22 285)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0.25, 0.5, 0.75].map((f) => (
-          <line key={f} x1={padX} x2={W - padX} y1={padY + f * (H - padY * 2)} y2={padY + f * (H - padY * 2)}
-            stroke="currentColor" className="text-border" strokeDasharray="3 4" />
-        ))}
-        <path d={area} fill="url(#wk-area)" />
-        <path d={d} fill="none" stroke="oklch(0.58 0.22 285)" strokeWidth="2.5" strokeLinecap="round" />
-        {points.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="4" fill="white" stroke="oklch(0.58 0.22 285)" strokeWidth="2" />
-        ))}
-      </svg>
-      <div className="flex justify-between mt-1 px-1 text-[11px] text-muted-foreground">
-        {labels.map((l) => <span key={l}>{l}</span>)}
-      </div>
+    <div className="flex items-end justify-between gap-3 h-40">
+      {values.map((v, i) => (
+        <div key={labels[i]} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+          <span className="text-[11px] text-muted-foreground">{v}h</span>
+          <div className="w-full rounded-t-lg bg-gradient-primary" style={{ height: `${(v / max) * 100}%` }} />
+          <span className="text-[11px] text-muted-foreground">{labels[i]}</span>
+        </div>
+      ))}
     </div>
   );
 }
