@@ -113,15 +113,14 @@
     color: var(--color-foreground);
     background-image:
       radial-gradient(
-        circle at 15% 5%,
-        oklch(0.78 0.13 175 / 0.06),
+        circle at 12% 0%,
+        oklch(0.58 0.22 285 / 0.22),
         transparent 45%
       ),
       radial-gradient(
-        circle at 85% 90%,
-        oklch(0.62 0.18 255 / 0.05),
+        circle at 88% 95%,
+        oklch(0.62 0.18 250 / 0.18),
         transparent 50%
-
       );
     background-attachment: fixed;
     min-height: 100vh;
