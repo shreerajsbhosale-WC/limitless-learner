@@ -62,17 +62,26 @@ function AuthPage() {
       return;
     }
     setBusy(true);
+    setEmail(clean);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: clean,
-        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/library`,
+        },
       });
       if (error) throw error;
       setStep("code");
       setCooldown(45);
-      toast.success("We emailed you a 6-digit code.");
+      toast.success(`Email sent to ${clean}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't send the code");
+      const msg = err instanceof Error ? err.message : "Couldn't send the email";
+      toast.error(
+        /rate|limit/i.test(msg)
+          ? "Too many attempts — wait a minute and try again."
+          : msg,
+      );
     } finally {
       setBusy(false);
     }
@@ -87,15 +96,30 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      let { error } = await supabase.auth.verifyOtp({
         email: email.trim().toLowerCase(),
         token,
         type: "email",
       });
+      if (error) {
+        // Newly created accounts use the "signup" OTP type
+        const retry = await supabase.auth.verifyOtp({
+          email: email.trim().toLowerCase(),
+          token,
+          type: "signup",
+        });
+        error = retry.error ? error : null;
+      }
       if (error) throw error;
       toast.success("Signed in");
+      navigate({ to: "/library" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "That code didn't work");
+      const msg = err instanceof Error ? err.message : "That code didn't work";
+      toast.error(
+        /expired|invalid/i.test(msg)
+          ? "That code is invalid or expired — request a new one."
+          : msg,
+      );
     } finally {
       setBusy(false);
     }
@@ -116,8 +140,8 @@ function AuthPage() {
           </h1>
           <p className="text-muted-foreground text-sm mb-6">
             {step === "email"
-              ? "We'll email you a one-time code — no password to remember."
-              : `Enter the 6-digit code we sent to ${email}.`}
+              ? "We'll email you a one-time sign-in code — no password to remember."
+              : `We sent an email to ${email}. Enter the 6-digit code below, or just click the sign-in link in that email.`}
           </p>
 
           {step === "email" ? (
