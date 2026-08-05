@@ -140,8 +140,8 @@ function AuthPage() {
           </h1>
           <p className="text-muted-foreground text-sm mb-6">
             {step === "email"
-              ? "We'll email you a one-time code — no password to remember."
-              : `Enter the 6-digit code we sent to ${email}.`}
+              ? "We'll email you a one-time sign-in code — no password to remember."
+              : `We sent an email to ${email}. Enter the 6-digit code below, or just click the sign-in link in that email.`}
           </p>
 
           {step === "email" ? (
