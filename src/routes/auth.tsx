@@ -96,15 +96,30 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      let { error } = await supabase.auth.verifyOtp({
         email: email.trim().toLowerCase(),
         token,
         type: "email",
       });
+      if (error) {
+        // Newly created accounts use the "signup" OTP type
+        const retry = await supabase.auth.verifyOtp({
+          email: email.trim().toLowerCase(),
+          token,
+          type: "signup",
+        });
+        error = retry.error ? error : null;
+      }
       if (error) throw error;
       toast.success("Signed in");
+      navigate({ to: "/library" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "That code didn't work");
+      const msg = err instanceof Error ? err.message : "That code didn't work";
+      toast.error(
+        /expired|invalid/i.test(msg)
+          ? "That code is invalid or expired — request a new one."
+          : msg,
+      );
     } finally {
       setBusy(false);
     }
