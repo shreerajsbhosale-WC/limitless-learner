@@ -62,17 +62,26 @@ function AuthPage() {
       return;
     }
     setBusy(true);
+    setEmail(clean);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: clean,
-        options: { shouldCreateUser: true, emailRedirectTo: window.location.origin },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/library`,
+        },
       });
       if (error) throw error;
       setStep("code");
       setCooldown(45);
-      toast.success("We emailed you a 6-digit code.");
+      toast.success(`Email sent to ${clean}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Couldn't send the code");
+      const msg = err instanceof Error ? err.message : "Couldn't send the email";
+      toast.error(
+        /rate|limit/i.test(msg)
+          ? "Too many attempts — wait a minute and try again."
+          : msg,
+      );
     } finally {
       setBusy(false);
     }
