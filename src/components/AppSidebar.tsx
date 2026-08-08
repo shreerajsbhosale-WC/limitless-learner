@@ -11,6 +11,7 @@ import {
   
   LogOut,
   GraduationCap,
+  Compass,
 } from "lucide-react";
 import {
   Sidebar,
@@ -25,6 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { useTour } from "@/hooks/use-tour";
 
 const navItems = [
   { title: "Dashboard", url: "/library", icon: LayoutDashboard },
@@ -42,6 +44,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const { signOut } = useAuth();
+  const { startTour } = useTour();
 
   const isActive = (url: string) =>
     url === "/library" ? currentPath === "/library" : currentPath.startsWith(url);
@@ -74,7 +77,7 @@ export function AppSidebar() {
                     tooltip={item.title}
                     className="h-10 rounded-xl data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:font-medium data-[active=true]:shadow-glow"
                   >
-                    <Link to={item.url}>
+                    <Link to={item.url} data-tour={`nav-${item.title.toLowerCase()}`}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
                     </Link>
@@ -88,6 +91,12 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={startTour} tooltip="Take the tour" className="h-10 rounded-xl text-muted-foreground">
+              <Compass className="size-4" />
+              <span>Take the tour</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={signOut} tooltip="Log out" className="h-10 rounded-xl text-muted-foreground">
               <LogOut className="size-4" />

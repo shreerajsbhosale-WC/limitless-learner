@@ -124,7 +124,7 @@ function DashboardPage() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
+        <div data-tour="stats" className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
           {stats.map((s) => (
             <div key={s.label} className="rounded-2xl bg-card border p-5 hover-lift">
               <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ function DashboardPage() {
           {/* Left 2 cols */}
           <div className="lg:col-span-2 space-y-6">
             {/* Continue Learning */}
-            <section className="rounded-2xl bg-card border p-6">
+            <section data-tour="continue" className="rounded-2xl bg-card border p-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-display text-lg font-semibold">Continue learning</h2>
                 <Link to="/library" className="text-sm text-primary hover:underline">View all</Link>
@@ -250,7 +250,7 @@ function DashboardPage() {
           {/* Right column */}
           <aside className="space-y-6">
             {/* Daily goal ring */}
-            <section className="rounded-2xl bg-card border p-6">
+            <section data-tour="daily-goal" className="rounded-2xl bg-card border p-6">
               <h2 className="font-display text-lg font-semibold mb-4">Daily goal</h2>
               <div className="flex flex-col items-center">
                 <ProgressRing pct={goalPct} />
