@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { TourProvider } from "@/hooks/use-tour";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthedShell() {
   return (
     <SidebarProvider>
+      <TourProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 min-w-0 flex flex-col">
@@ -29,6 +31,7 @@ function AuthedShell() {
           <Outlet />
         </div>
       </div>
+      </TourProvider>
     </SidebarProvider>
   );
 }
