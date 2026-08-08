@@ -9,6 +9,7 @@ import { SceneKit } from "./scenes/SceneKit";
 import { SceneTools } from "./scenes/SceneTools";
 import { SceneGamify } from "./scenes/SceneGamify";
 import { SceneOutro } from "./scenes/SceneOutro";
+import { SceneTour } from "./scenes/SceneTour";
 
 const t = springTiming({ config: { damping: 200 }, durationInFrames: 22 });
 
@@ -34,6 +35,10 @@ export const MainVideo: React.FC = () => (
       <TransitionSeries.Transition presentation={slide({ direction: "from-right" })} timing={t} />
       <TransitionSeries.Sequence durationInFrames={135}>
         <SceneGamify />
+      </TransitionSeries.Sequence>
+      <TransitionSeries.Transition presentation={slide({ direction: "from-right" })} timing={t} />
+      <TransitionSeries.Sequence durationInFrames={140}>
+        <SceneTour />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition presentation={wipe({ direction: "from-left" })} timing={t} />
       <TransitionSeries.Sequence durationInFrames={110}>

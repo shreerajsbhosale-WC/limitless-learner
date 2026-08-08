@@ -15,6 +15,7 @@ import { ProgressProvider } from "@/hooks/use-progress";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { LofiPlayer } from "@/components/LofiPlayer";
+import { TourProvider } from "@/hooks/use-tour";
 
 function NotFoundComponent() {
   return (
@@ -126,10 +127,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ProgressProvider>
+          <TourProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <LofiPlayer />
           <Toaster position="top-right" theme="dark" />
+          </TourProvider>
         </ProgressProvider>
       </AuthProvider>
     </QueryClientProvider>
