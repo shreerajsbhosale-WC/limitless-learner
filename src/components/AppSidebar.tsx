@@ -92,9 +92,9 @@ export function AppSidebar() {
       <SidebarFooter className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={startTour} tooltip="Take the tour" className="h-10 rounded-xl text-muted-foreground">
+            <SidebarMenuButton onClick={startTour} tooltip="Watch intro video" className="h-10 rounded-xl text-muted-foreground">
               <Compass className="size-4" />
-              <span>Take the tour</span>
+              <span>Watch intro video</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

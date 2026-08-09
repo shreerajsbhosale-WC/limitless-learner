@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { OnboardingTour, hasCompletedTour, resetTour } from "@/components/OnboardingTour";
+import { WelcomeVideo, hasSeenIntro, resetIntro } from "@/components/WelcomeVideo";
 
 type TourCtx = { startTour: () => void };
 const Ctx = createContext<TourCtx>({ startTour: () => {} });
@@ -12,21 +12,21 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!hasCompletedTour()) {
+    if (!hasSeenIntro()) {
       const t = window.setTimeout(() => setOpen(true), 700);
       return () => window.clearTimeout(t);
     }
   }, []);
 
   const startTour = () => {
-    resetTour();
+    resetIntro();
     setOpen(true);
   };
 
   return (
     <Ctx.Provider value={{ startTour }}>
       {children}
-      <OnboardingTour open={open} onClose={() => setOpen(false)} />
+      <WelcomeVideo open={open} onClose={() => setOpen(false)} />
     </Ctx.Provider>
   );
 }
