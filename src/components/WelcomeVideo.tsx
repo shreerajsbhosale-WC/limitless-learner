@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Play, Pause, Volume2, VolumeX, RotateCcw, Gauge, Maximize2 } from "lucide-react";
+import { X, Play, Pause, Volume2, VolumeX, RotateCcw, Gauge, Maximize2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "limitless.intro.seen.v1";
@@ -38,6 +38,7 @@ export function WelcomeVideo({ open, onClose }: { open: boolean; onClose: () => 
   const [speed, setSpeed] = useState<number>(1);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [hovering, setHovering] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -98,31 +99,53 @@ export function WelcomeVideo({ open, onClose }: { open: boolean; onClose: () => 
       aria-modal="true"
       aria-label="Getting started video"
     >
-      <div className="w-full max-w-4xl rounded-2xl border bg-card shadow-xl overflow-hidden animate-scale-in">
-        <div className="flex items-center justify-between px-5 py-3 border-b">
-          <div>
-            <h2 className="font-display font-semibold">Getting started with Limitless</h2>
-            <p className="text-xs text-muted-foreground">A 26-second tour of every feature.</p>
+        <div className="w-full max-w-4xl rounded-2xl border bg-card shadow-xl overflow-hidden animate-scale-in">
+          <div className="flex items-center justify-between px-5 py-3 border-b">
+            <div>
+              <h2 className="font-display font-semibold">Getting started with Limitless</h2>
+              <p className="text-xs text-muted-foreground">A 26-second tour of every feature.</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="ghost" onClick={close} className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1">
+                <LogOut className="size-3.5" />
+                Exit tour
+              </Button>
+              <button onClick={close} aria-label="Close video" className="text-muted-foreground hover:text-foreground p-1">
+                <X className="size-5" />
+              </button>
+            </div>
           </div>
-          <button onClick={close} aria-label="Close video" className="text-muted-foreground hover:text-foreground">
-            <X className="size-5" />
-          </button>
-        </div>
 
-        <div className="relative bg-black">
-          <video
-            ref={ref}
-            src={INTRO_SRC}
-            className="w-full aspect-video"
-            autoPlay
-            muted={muted}
-            playsInline
+          <div
+            className="relative bg-black group cursor-pointer"
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => setHovering(false)}
             onClick={toggle}
-            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
-            onEnded={() => setPlaying(false)}
-          />
-          {/* progress + chapter markers */}
+          >
+            <video
+              ref={ref}
+              src={INTRO_SRC}
+              className="w-full aspect-video"
+              autoPlay
+              muted={muted}
+              playsInline
+              onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+              onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+              onEnded={() => setPlaying(false)}
+            />
+            {/* centered play/pause overlay */}
+            {(hovering || !playing) && (
+              <div className="absolute inset-0 grid place-items-center pointer-events-none transition-opacity duration-200">
+                <div className={`rounded-full bg-black/60 backdrop-blur-sm p-4 transition-transform duration-200 ${playing ? "scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100" : "scale-100 opacity-100"}`}>
+                  {playing ? (
+                    <Pause className="size-10 text-white" />
+                  ) : (
+                    <Play className="size-10 text-white ml-1" />
+                  )}
+                </div>
+              </div>
+            )}
+            {/* progress + chapter markers */}
           <div
             className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 cursor-pointer"
             onClick={(e) => {
