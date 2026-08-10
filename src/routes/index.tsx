@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock, Target, Timer, MessageSquare, Users } from "lucide-react";
+import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock, Target, Timer, MessageSquare, Users, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { useTour } from "@/hooks/use-tour";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
