@@ -125,6 +125,24 @@ function DashboardPage() {
           </Button>
         </div>
 
+        {/* Visible intro video banner */}
+        <div className="rounded-2xl border bg-gradient-to-r from-card to-secondary/30 p-6 mb-8 flex flex-col sm:flex-row items-center gap-5 hover-lift">
+          <div className="relative shrink-0 size-20 sm:size-24 rounded-2xl bg-black/80 grid place-items-center overflow-hidden group cursor-pointer" onClick={startTour}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-accent/30" />
+            <Play className="size-8 sm:size-10 text-white fill-white drop-shadow-lg group-hover:scale-110 transition" />
+            <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/90 bg-black/60 px-1.5 rounded">0:26</span>
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="font-display text-lg font-semibold">Watch the Limitless tour</h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+              New here or need a refresher? This 26-second video shows you how to upload a PDF, study with AI, and use every tool.
+            </p>
+          </div>
+          <Button onClick={startTour} className="bg-gradient-primary text-primary-foreground shadow-glow shrink-0">
+            <Play className="size-4 mr-2 fill-current" /> Play video
+          </Button>
+        </div>
+
         {/* Stat cards */}
         <div data-tour="stats" className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
           {stats.map((s) => (
