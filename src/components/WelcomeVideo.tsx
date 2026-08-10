@@ -116,20 +116,36 @@ export function WelcomeVideo({ open, onClose }: { open: boolean; onClose: () => 
             </div>
           </div>
 
-        <div className="relative bg-black">
-          <video
-            ref={ref}
-            src={INTRO_SRC}
-            className="w-full aspect-video"
-            autoPlay
-            muted={muted}
-            playsInline
+          <div
+            className="relative bg-black group cursor-pointer"
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => setHovering(false)}
             onClick={toggle}
-            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
-            onEnded={() => setPlaying(false)}
-          />
-          {/* progress + chapter markers */}
+          >
+            <video
+              ref={ref}
+              src={INTRO_SRC}
+              className="w-full aspect-video"
+              autoPlay
+              muted={muted}
+              playsInline
+              onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+              onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+              onEnded={() => setPlaying(false)}
+            />
+            {/* centered play/pause overlay */}
+            {(hovering || !playing) && (
+              <div className="absolute inset-0 grid place-items-center pointer-events-none transition-opacity duration-200">
+                <div className={`rounded-full bg-black/60 backdrop-blur-sm p-4 transition-transform duration-200 ${playing ? "scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100" : "scale-100 opacity-100"}`}>
+                  {playing ? (
+                    <Pause className="size-10 text-white" />
+                  ) : (
+                    <Play className="size-10 text-white ml-1" />
+                  )}
+                </div>
+              </div>
+            )}
+            {/* progress + chapter markers */}
           <div
             className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 cursor-pointer"
             onClick={(e) => {
