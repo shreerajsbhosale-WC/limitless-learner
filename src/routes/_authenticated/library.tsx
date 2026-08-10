@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Bell, Plus, Trash2, FileText, GraduationCap,
-  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
+  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight, Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { CardListSkeleton } from "@/components/Skeletons";
 import { listStudyKits, deleteStudyKit } from "@/lib/library.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useProgress } from "@/hooks/use-progress";
+import { useTour } from "@/hooks/use-tour";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/library")({
