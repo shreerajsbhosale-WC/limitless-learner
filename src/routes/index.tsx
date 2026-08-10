@@ -28,6 +28,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const { startTour } = useTour();
   return (
     <div className="min-h-screen">
       <ScrollProgress />
