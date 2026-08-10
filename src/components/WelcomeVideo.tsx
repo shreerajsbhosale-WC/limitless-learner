@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Play, Pause, Volume2, VolumeX, RotateCcw, Gauge, Maximize2 } from "lucide-react";
+import { X, Play, Pause, Volume2, VolumeX, RotateCcw, Gauge, Maximize2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "limitless.intro.seen.v1";
