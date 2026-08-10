@@ -61,6 +61,14 @@ function LandingPage() {
                 Upload your first PDF <ArrowRight className="ml-2 size-4" />
               </Link>
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-12 px-7 text-base gap-2"
+              onClick={startTour}
+            >
+              <Play className="size-4 fill-current" /> Watch the tour
+            </Button>
             <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
               <a href="#features">See how it works</a>
             </Button>
