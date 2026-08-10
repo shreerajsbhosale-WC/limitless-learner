@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Bell, Plus, Trash2, FileText, GraduationCap,
-  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight,
+  Clock, ClipboardList, Flame, Trophy, Target, BookOpen, HelpCircle, Zap, Sparkles, ArrowRight, Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { CardListSkeleton } from "@/components/Skeletons";
 import { listStudyKits, deleteStudyKit } from "@/lib/library.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useProgress } from "@/hooks/use-progress";
+import { useTour } from "@/hooks/use-tour";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/library")({
@@ -31,6 +32,7 @@ const coursePalettes = [
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { startTour } = useTour();
   const { state, level } = useProgress();
   const xp = state.xp;
   const streak = state.streak;
@@ -120,6 +122,24 @@ function DashboardPage() {
           </div>
           <Button asChild size="lg" className="bg-gradient-primary text-primary-foreground shadow-glow">
             <Link to="/study"><Plus className="size-4 mr-2" />New study kit</Link>
+          </Button>
+        </div>
+
+        {/* Visible intro video banner */}
+        <div className="rounded-2xl border bg-gradient-to-r from-card to-secondary/30 p-6 mb-8 flex flex-col sm:flex-row items-center gap-5 hover-lift">
+          <div className="relative shrink-0 size-20 sm:size-24 rounded-2xl bg-black/80 grid place-items-center overflow-hidden group cursor-pointer" onClick={startTour}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-accent/30" />
+            <Play className="size-8 sm:size-10 text-white fill-white drop-shadow-lg group-hover:scale-110 transition" />
+            <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/90 bg-black/60 px-1.5 rounded">0:26</span>
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="font-display text-lg font-semibold">Watch the Limitless tour</h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+              New here or need a refresher? This 26-second video shows you how to upload a PDF, study with AI, and use every tool.
+            </p>
+          </div>
+          <Button onClick={startTour} className="bg-gradient-primary text-primary-foreground shadow-glow shrink-0">
+            <Play className="size-4 mr-2 fill-current" /> Play video
           </Button>
         </div>
 

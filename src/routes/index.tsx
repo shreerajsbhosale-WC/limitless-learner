@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock, Target, Timer, MessageSquare, Users } from "lucide-react";
+import { ArrowRight, FileUp, Sparkles, Layers, BrainCircuit, Zap, Clock, Target, Timer, MessageSquare, Users, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { useTour } from "@/hooks/use-tour";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/")({
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const { startTour } = useTour();
   return (
     <div className="min-h-screen">
       <ScrollProgress />
@@ -58,6 +60,14 @@ function LandingPage() {
               <Link to="/study">
                 Upload your first PDF <ArrowRight className="ml-2 size-4" />
               </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-12 px-7 text-base gap-2"
+              onClick={startTour}
+            >
+              <Play className="size-4 fill-current" /> Watch the tour
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
               <a href="#features">See how it works</a>
