@@ -98,16 +98,22 @@ export function WelcomeVideo({ open, onClose }: { open: boolean; onClose: () => 
       aria-modal="true"
       aria-label="Getting started video"
     >
-      <div className="w-full max-w-4xl rounded-2xl border bg-card shadow-xl overflow-hidden animate-scale-in">
-        <div className="flex items-center justify-between px-5 py-3 border-b">
-          <div>
-            <h2 className="font-display font-semibold">Getting started with Limitless</h2>
-            <p className="text-xs text-muted-foreground">A 26-second tour of every feature.</p>
+        <div className="w-full max-w-4xl rounded-2xl border bg-card shadow-xl overflow-hidden animate-scale-in">
+          <div className="flex items-center justify-between px-5 py-3 border-b">
+            <div>
+              <h2 className="font-display font-semibold">Getting started with Limitless</h2>
+              <p className="text-xs text-muted-foreground">A 26-second tour of every feature.</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="ghost" onClick={close} className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1">
+                <LogOut className="size-3.5" />
+                Exit tour
+              </Button>
+              <button onClick={close} aria-label="Close video" className="text-muted-foreground hover:text-foreground p-1">
+                <X className="size-5" />
+              </button>
+            </div>
           </div>
-          <button onClick={close} aria-label="Close video" className="text-muted-foreground hover:text-foreground">
-            <X className="size-5" />
-          </button>
-        </div>
 
         <div className="relative bg-black">
           <video
