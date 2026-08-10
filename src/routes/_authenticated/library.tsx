@@ -32,6 +32,7 @@ const coursePalettes = [
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { startTour } = useTour();
   const { state, level } = useProgress();
   const xp = state.xp;
   const streak = state.streak;
