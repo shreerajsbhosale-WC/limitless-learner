@@ -38,6 +38,7 @@ export function WelcomeVideo({ open, onClose }: { open: boolean; onClose: () => 
   const [speed, setSpeed] = useState<number>(1);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [hovering, setHovering] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
