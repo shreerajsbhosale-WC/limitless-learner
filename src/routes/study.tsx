@@ -52,13 +52,16 @@ function StudyPage() {
   const [textInput, setTextInput] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [saved, setSaved] = useState(false);
+  const [sourceText, setSourceText] = useState("");
 
   const runGenerate = async (text: string, title: string, sourceLabel?: string) => {
     setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
     const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
+    setSourceText(trimmed);
     const result = await generate({
       data: { text: trimmed, title, animeMode, musicMode, sourceLabel },
     });
+
     setMaterials(result);
     recordKitGenerated();
     setSaved(false);
