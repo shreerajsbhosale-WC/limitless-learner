@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PdfDropzone } from "@/components/PdfDropzone";
@@ -9,7 +9,9 @@ import { Notes } from "@/components/Notes";
 import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
 import { MatchGame } from "@/components/MatchGame";
+import { StoryMode } from "@/components/StoryMode";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,13 +52,16 @@ function StudyPage() {
   const [textInput, setTextInput] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [saved, setSaved] = useState(false);
+  const [sourceText, setSourceText] = useState("");
 
   const runGenerate = async (text: string, title: string, sourceLabel?: string) => {
     setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
     const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
+    setSourceText(trimmed);
     const result = await generate({
       data: { text: trimmed, title, animeMode, musicMode, sourceLabel },
     });
+
     setMaterials(result);
     recordKitGenerated();
     setSaved(false);
@@ -215,16 +220,24 @@ function StudyPage() {
               )}
             </header>
             <Tabs defaultValue="notes" className="w-full">
-              <TabsList className="grid grid-cols-4 max-w-xl mb-8 bg-secondary">
+              <TabsList className="grid grid-cols-5 max-w-2xl mb-8 bg-secondary">
                 <TabsTrigger value="notes" className="gap-2"><Layers className="size-4" /> Notes</TabsTrigger>
                 <TabsTrigger value="cards" className="gap-2"><BrainCircuit className="size-4" /> Cards</TabsTrigger>
                 <TabsTrigger value="match" className="gap-2"><Shuffle className="size-4" /> Match</TabsTrigger>
+                <TabsTrigger value="story" className="gap-2"><Swords className="size-4" /> Story</TabsTrigger>
                 <TabsTrigger value="quiz" className="gap-2"><Zap className="size-4" /> Quiz</TabsTrigger>
               </TabsList>
               <TabsContent value="notes"><Notes notes={materials.notes} summary={materials.summary} /></TabsContent>
               <TabsContent value="cards"><Flashcards cards={materials.flashcards} /></TabsContent>
               <TabsContent value="match"><MatchGame cards={materials.flashcards} /></TabsContent>
+              <TabsContent value="story">
+                <StoryMode
+                  sourceText={sourceText || `${materials.summary}\n\n${materials.notes.map((n) => `${n.heading}\n${n.points.join("\n")}`).join("\n\n")}`}
+                  title={materials.title}
+                />
+              </TabsContent>
               <TabsContent value="quiz"><Quiz questions={materials.quiz} topic={materials.title} /></TabsContent>
+
             </Tabs>
 
           </div>
