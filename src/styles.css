@@ -267,3 +267,8 @@ html.anime h1, html.anime h2, html.anime h3, html.anime h4 {
   letter-spacing: 0.01em;
   text-shadow: 2px 2px 0 oklch(0.2 0.04 320 / 0.15);
 }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
