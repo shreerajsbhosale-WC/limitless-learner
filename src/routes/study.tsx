@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PdfDropzone } from "@/components/PdfDropzone";
@@ -9,7 +9,9 @@ import { Notes } from "@/components/Notes";
 import { Flashcards } from "@/components/Flashcards";
 import { Quiz } from "@/components/Quiz";
 import { MatchGame } from "@/components/MatchGame";
+import { StoryMode } from "@/components/StoryMode";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
