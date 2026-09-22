@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { Upload, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { sanitizeFilename, validatePdfFile } from "@/lib/security";
 
 type Props = {
   onFile: (file: File) => void;
@@ -11,21 +13,24 @@ type Props = {
 export function PdfDropzone({ onFile, busy, status }: Props) {
   const [drag, setDrag] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handle = useCallback(
-    (file: File | undefined | null) => {
+    async (file: File | undefined | null) => {
       if (!file) return;
-      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-        alert("Please upload a PDF file.");
-        return;
+      setChecking(true);
+      try {
+        const result = await validatePdfFile(file);
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        setFileName(sanitizeFilename(file.name));
+        onFile(file);
+      } finally {
+        setChecking(false);
       }
-      if (file.size > 25 * 1024 * 1024) {
-        alert("PDF is too large (max 25 MB).");
-        return;
-      }
-      setFileName(file.name);
-      onFile(file);
     },
     [onFile],
   );
