@@ -67,8 +67,12 @@ export const deleteStudyKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { error } = await supabase.from("study_kits").delete().eq("id", data.id);
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("study_kits")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
