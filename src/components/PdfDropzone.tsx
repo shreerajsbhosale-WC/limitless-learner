@@ -60,7 +60,7 @@ export function PdfDropzone({ onFile, busy, status }: Props) {
       />
 
       <div className="mx-auto size-16 rounded-2xl bg-gradient-primary grid place-items-center shadow-glow mb-5">
-        {busy ? (
+        {busy || checking ? (
           <Loader2 className="size-7 text-primary-foreground animate-spin" />
         ) : fileName ? (
           <FileText className="size-7 text-primary-foreground" />
