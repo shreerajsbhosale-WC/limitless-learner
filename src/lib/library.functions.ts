@@ -49,11 +49,14 @@ export const getStudyKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
+    // Ownership is enforced server-side as well as by row-level security —
+    // never trust that a plausible-looking id belongs to the caller.
     const { data: row, error } = await supabase
       .from("study_kits")
       .select("id, title, source_type, materials, created_at")
       .eq("id", data.id)
+      .eq("user_id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Kit not found");
