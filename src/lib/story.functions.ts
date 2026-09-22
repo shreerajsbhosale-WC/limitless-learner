@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { assertClean, MAX_SOURCE_CHARS } from "@/lib/security";
 
 const inputSchema = z.object({
   text: z.string().min(20).max(120_000),
@@ -102,6 +103,7 @@ export type StoryMode = {
 export const generateStoryMode = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => inputSchema.parse(d))
   .handler(async ({ data }): Promise<StoryMode> => {
+    assertClean(data.text, MAX_SOURCE_CHARS);
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
