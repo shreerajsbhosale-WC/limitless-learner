@@ -55,8 +55,8 @@
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
-    "mermaid": "^11.16.0",
-    "pdfjs-dist": "^6.0.227",
+    "mermaid": "11.16.1",
+    "pdfjs-dist": "6.2.108",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
@@ -92,5 +92,12 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1"
+  },
+  "overrides": {
+    "seroval": "^1.5.3",
+    "browserslist": "^4.28.7",
+    "js-yaml": "^4.3.2",
+    "dompurify": "^3.4.13",
+    "baseline-browser-mapping": "^2.11.0"
   }
 }
