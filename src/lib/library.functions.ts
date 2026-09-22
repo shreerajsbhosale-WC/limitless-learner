@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertClean, MAX_MESSAGE_CHARS, MAX_SOURCE_CHARS } from "@/lib/security";
+import { assertClean, MAX_MESSAGE_CHARS } from "@/lib/security";
 import { enforceRateLimit } from "@/lib/rate-limit.server";
 
 const materialsShape = z.object({
