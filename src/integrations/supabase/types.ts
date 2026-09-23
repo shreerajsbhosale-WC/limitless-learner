@@ -159,6 +159,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          id: string
+          ip_hash: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          id?: string
+          ip_hash: string
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          id?: string
+          ip_hash?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -266,6 +290,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_ip_rate_limit: {
+        Args: {
+          _bucket: string
+          _ip_hash: string
+          _max: number
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       consume_rate_limit: {
         Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
