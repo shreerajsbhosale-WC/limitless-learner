@@ -89,7 +89,7 @@ From the provided study material, produce:
 - 15-30 multiple-choice quiz questions spanning every major topic, EXACTLY 4 options each, 0-indexed correctIndex, and a 1-2 sentence explanation that teaches
 Be accurate, specific, and faithful to the source — never invent facts or formulas. If the source is thin (e.g. a video title only), generate the full standard curriculum for that topic and note when you're inferring. Prefer completeness over brevity; never drop a topic to save space.${animeAddon}${musicAddon}`;
 
-    const userPrompt = `${data.sourceLabel ? `Source: ${data.sourceLabel}\n` : ""}${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
+    const userPrompt = `${data.sourceLabel ? `Source: ${data.sourceLabel}\n` : ""}${data.title ? `Document title: ${data.title}\n\n` : ""}Study material:\n\n${fenceUntrustedSource(data.text)}`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

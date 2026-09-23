@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertClean, MAX_SOURCE_CHARS } from "@/lib/security";
+import { fenceUntrustedSource, MAX_SOURCE_CHARS } from "@/lib/security";
+import { enforceGuestRateLimit } from "@/lib/rate-limit.server";
 
 const inputSchema = z.object({
   text: z.string().min(20).max(120_000),
