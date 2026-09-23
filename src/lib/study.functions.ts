@@ -166,6 +166,7 @@ export const explainMistake = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data }) => {
+    await enforceGuestRateLimit("explain");
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

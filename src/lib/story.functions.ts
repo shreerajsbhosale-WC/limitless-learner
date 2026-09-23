@@ -120,7 +120,7 @@ Rules:
 - Each chapter ends with a plain-language "lesson" (2-3 sentences of the actual takeaway) and a 3-option checkpoint question with 0-indexed correctIndex.
 - Habitica energy: quests, parties, boss fights, loot, "you gained +XP" flavour in Narrator lines. Never sacrifice accuracy for flavour, never invent facts not supported by the source.`;
 
-    const userPrompt = `${data.title ? `Source title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
+    const userPrompt = `${data.title ? `Source title: ${data.title}\n\n` : ""}Study material:\n\n${fenceUntrustedSource(data.text)}`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
