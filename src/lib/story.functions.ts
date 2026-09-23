@@ -104,7 +104,10 @@ export type StoryMode = {
 export const generateStoryMode = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => inputSchema.parse(d))
   .handler(async ({ data }): Promise<StoryMode> => {
-    assertClean(data.text, MAX_SOURCE_CHARS);
+    await enforceGuestRateLimit("story");
+    if (data.text.length > MAX_SOURCE_CHARS) {
+      throw new Error("That document is too long — please split it up.");
+    }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
