@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { assertClean, MAX_SOURCE_CHARS } from "@/lib/security";
+import { fenceUntrustedSource, MAX_SOURCE_CHARS } from "@/lib/security";
+import { enforceGuestRateLimit } from "@/lib/rate-limit.server";
 
 const inputSchema = z.object({
   text: z.string().min(20).max(120_000),
@@ -103,7 +104,10 @@ export type StoryMode = {
 export const generateStoryMode = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => inputSchema.parse(d))
   .handler(async ({ data }): Promise<StoryMode> => {
-    assertClean(data.text, MAX_SOURCE_CHARS);
+    await enforceGuestRateLimit("story");
+    if (data.text.length > MAX_SOURCE_CHARS) {
+      throw new Error("That document is too long — please split it up.");
+    }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
@@ -116,7 +120,7 @@ Rules:
 - Each chapter ends with a plain-language "lesson" (2-3 sentences of the actual takeaway) and a 3-option checkpoint question with 0-indexed correctIndex.
 - Habitica energy: quests, parties, boss fights, loot, "you gained +XP" flavour in Narrator lines. Never sacrifice accuracy for flavour, never invent facts not supported by the source.`;
 
-    const userPrompt = `${data.title ? `Source title: ${data.title}\n\n` : ""}Study material:\n\n${data.text}`;
+    const userPrompt = `${data.title ? `Source title: ${data.title}\n\n` : ""}Study material:\n\n${fenceUntrustedSource(data.text)}`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
