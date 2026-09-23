@@ -63,7 +63,12 @@ export type StudyMaterials = {
 export const generateStudyMaterials = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<StudyMaterials> => {
-    assertClean(data.text, MAX_SOURCE_CHARS);
+    // Reachable without an account (guests may generate but not save), so the
+    // per-visitor limiter is what protects the AI budget here.
+    await enforceGuestRateLimit("generate");
+    if (data.text.length > MAX_SOURCE_CHARS) {
+      throw new Error("That document is too long — please split it up.");
+    }
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
