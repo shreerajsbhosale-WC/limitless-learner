@@ -1,13 +1,71 @@
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Sparkles, Swords, ScrollText, ChevronRight, Trophy, RotateCcw } from "lucide-react";
+import { Loader2, Sparkles, Swords, ScrollText, ChevronRight, Trophy, RotateCcw, Download, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PixelSprite } from "@/components/PixelSprite";
+import { PixelVfx } from "@/components/PixelVfx";
 import { generateStoryMode, type StoryMode as Story } from "@/lib/story.functions";
-import type { SpriteSpec } from "@/lib/pixel-sprite";
+import {
+  drawSprite,
+  drawVfx,
+  spriteFromSeed,
+  GRID,
+  type SpriteSpec,
+  type SpriteDirection,
+  type EffectKey,
+} from "@/lib/pixel-sprite";
 import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
+
+/* Sudden-insight / clash keyword fallback when the AI didn't tag a scene. */
+function detectEffect(text: string): EffectKey {
+  const s = text.toLowerCase();
+  if (/fire|burn|heat|energy|explos|combust/.test(s)) return "fireball";
+  if (/clash|conflict|collid|versus|oppos|fight|battle/.test(s)) return "slash";
+  if (/spark|insight|idea|sudden|realiz|eureka|breakthrough|moment it clicks/.test(s)) return "spark";
+  if (/aura|field|force|magic|surround|atmosphere/.test(s)) return "aura";
+  return "none";
+}
+
+/* Ambient loop particles — slow, fixed-camera drift behind the stage. */
+const AMBIENT = [
+  { left: "6%", dur: "11s", delay: "0s", size: 5, x: "14px", cls: "bg-primary/50" },
+  { left: "18%", dur: "14s", delay: "2s", size: 4, x: "-10px", cls: "bg-accent/40" },
+  { left: "31%", dur: "10s", delay: "5s", size: 6, x: "18px", cls: "bg-primary/30" },
+  { left: "47%", dur: "16s", delay: "1s", size: 4, x: "-14px", cls: "bg-accent/30" },
+  { left: "63%", dur: "12s", delay: "7s", size: 5, x: "10px", cls: "bg-primary/40" },
+  { left: "78%", dur: "15s", delay: "3s", size: 4, x: "-18px", cls: "bg-accent/50" },
+  { left: "90%", dur: "13s", delay: "6s", size: 6, x: "12px", cls: "bg-primary/30" },
+];
+
+function slug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "sprite";
+}
+
+function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+
+/** Draws a 4-direction rig row (down, up, left, right) from a single spec. */
+function drawDirectionRow(ctx: CanvasRenderingContext2D, spec: SpriteSpec, scale: number, y = 0) {
+  (["down", "up", "left", "right"] as const).forEach((d, i) => {
+    ctx.save();
+    ctx.translate(i * GRID * scale, y);
+    drawSprite(ctx, spec, scale, d);
+    ctx.restore();
+  });
+}
 
 type Props = { sourceText: string; title: string };
 
