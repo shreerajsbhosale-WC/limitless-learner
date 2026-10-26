@@ -125,11 +125,50 @@ export function StoryMode({ sourceText, title }: Props) {
   const ch = story.chapters[chapter];
   const sc = ch.scenes[scene];
   const speaker = castBySpeaker.get(sc.speaker.toLowerCase());
+  const effect: EffectKey =
+    sc.effect && (EFFECT_KEYS as readonly string[]).includes(sc.effect) && sc.effect !== "none"
+      ? (sc.effect as Exclude<EffectKey, "none">)
+      : detectEffect(`${sc.narration ?? ""} ${sc.line}`);
   const atEnd = scene >= ch.scenes.length - 1;
   const isCleared = cleared.has(chapter);
 
   const spec = (c?: Story["characters"][number]): Partial<SpriteSpec> | undefined =>
     c ? (c as unknown as Partial<SpriteSpec>) : undefined;
+
+  const downloadSpriteSheet = (c: Story["characters"][number]) => {
+    const s = 4;
+    const canvas = document.createElement("canvas");
+    canvas.width = GRID * s * 4;
+    canvas.height = GRID * s;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    drawDirectionRow(ctx, spriteFromSeed(c.name, spec(c)), s);
+    downloadCanvas(canvas, `${slug(c.name)}-sprite-sheet.png`);
+  };
+
+  const downloadAssetPack = () => {
+    if (!story) return;
+    const s = 4;
+    const rows = story.characters.length + 1;
+    const canvas = document.createElement("canvas");
+    canvas.width = GRID * s * 12;
+    canvas.height = GRID * s * rows;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    story.characters.forEach((c, r) => {
+      drawDirectionRow(ctx, spriteFromSeed(c.name, spec(c)), s, r * GRID * s);
+    });
+    (["fireball", "slash", "spark", "aura"] as const).forEach((e, i) => {
+      for (let f = 0; f < 3; f++) {
+        ctx.save();
+        ctx.translate((i * 3 + f) * GRID * s, (rows - 1) * GRID * s);
+        drawVfx(ctx, e, f, s);
+        ctx.restore();
+      }
+    });
+    downloadCanvas(canvas, `${slug(story.title)}-asset-pack.png`);
+    toast.success("Asset pack downloaded — drop it into Piskel or Aseprite.");
+  };
 
   const answer = (i: number) => {
     if (answered !== null) return;
@@ -155,9 +194,21 @@ export function StoryMode({ sourceText, title }: Props) {
     <div className="space-y-6">
       {/* World header */}
       <div className="rounded-2xl border border-border bg-gradient-card p-6">
-        <p className="text-xs uppercase tracking-widest text-primary mb-2">Story Mode</p>
-        <h3 className="font-display text-2xl font-semibold mb-2">{story.title}</h3>
-        <p className="text-sm text-foreground/80 leading-relaxed">{story.world}</p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-primary mb-2">Story Mode</p>
+            <h3 className="font-display text-2xl font-semibold mb-2">{story.title}</h3>
+            <p className="text-sm text-foreground/80 leading-relaxed">{story.world}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={downloadAssetPack}
+            title="Download every character's 4-direction sprite sheet plus the VFX frames — importable into Piskel or Aseprite"
+          >
+            <Package className="size-4 mr-2" /> Asset pack
+          </Button>
+        </div>
       </div>
 
       {/* Party */}
@@ -169,9 +220,21 @@ export function StoryMode({ sourceText, title }: Props) {
               <div className="flex justify-center mb-2">
                 <PixelSprite seed={c.name} spec={spec(c)} size={64} />
               </div>
+              {/* 4-direction rig sheet — one anchor spec, four facings */}
+              <div className="flex justify-center gap-1.5 mb-3">
+                {(["up", "left", "down", "right"] as const).map((d) => (
+                  <PixelSprite key={d} seed={c.name} spec={spec(c)} size={22} direction={d} />
+                ))}
+              </div>
               <p className="font-semibold text-sm leading-tight">{c.name}</p>
               <p className="text-[10px] uppercase tracking-wider text-primary mb-1">{c.role}</p>
               <p className="text-[11px] text-muted-foreground leading-snug">{c.concept}</p>
+              <button
+                onClick={() => downloadSpriteSheet(c)}
+                className="mt-2 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary transition"
+              >
+                <Download className="size-3" /> Sheet
+              </button>
             </div>
           ))}
         </div>
@@ -205,11 +268,32 @@ export function StoryMode({ sourceText, title }: Props) {
           </span>
         </div>
 
-        <div className="p-6 min-h-[220px] flex gap-5 items-start bg-[radial-gradient(circle_at_20%_0%,hsl(var(--primary)/0.12),transparent_60%)]">
-          <div className="shrink-0">
-            <PixelSprite seed={sc.speaker} spec={spec(speaker)} size={96} bob />
+        <div className="relative p-6 min-h-[220px] flex gap-5 items-start overflow-hidden bg-[radial-gradient(circle_at_20%_0%,hsl(var(--primary)/0.12),transparent_60%)]">
+          {/* Ambient loop backdrop */}
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            {AMBIENT.map((p, i) => (
+              <span
+                key={i}
+                className={`absolute rounded-[2px] ${p.cls}`}
+                style={{
+                  left: p.left,
+                  bottom: -8,
+                  width: p.size,
+                  height: p.size,
+                  animation: `ambient-drift ${p.dur} steps(16) infinite`,
+                  animationDelay: p.delay,
+                  ["--ambient-x" as string]: p.x,
+                }}
+              />
+            ))}
           </div>
-          <div className="flex-1">
+          <div className="relative shrink-0">
+            <PixelSprite seed={sc.speaker} spec={spec(speaker)} size={96} bob />
+            {effect !== "none" && (
+              <PixelVfx effect={effect} size={72} className="absolute -right-8 bottom-0 opacity-90" />
+            )}
+          </div>
+          <div className="relative flex-1">
             {sc.narration && (
               <p className="text-xs italic text-muted-foreground mb-3">{sc.narration}</p>
             )}
