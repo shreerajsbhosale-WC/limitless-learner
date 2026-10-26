@@ -67,7 +67,7 @@ function FlowchartPage() {
           <p className="text-muted-foreground mt-2">Turn any text, notes, or PDF into a clean diagram.</p>
         </header>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
           <div className="space-y-4">
             <Tabs value={style} onValueChange={(v) => setStyle(v as typeof style)}>
               <TabsList className="grid grid-cols-3 bg-secondary">
@@ -91,19 +91,21 @@ function FlowchartPage() {
             </div>
           </div>
 
-          <div>
-            {diagram ? (
-              <Mermaid chart={diagram} />
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground h-full grid place-items-center">
-                <div>
-                  <Workflow className="size-10 mx-auto mb-3 text-primary" />
-                  <p>Your diagram will appear here.</p>
-                </div>
+          {!diagram && (
+            <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground grid place-items-center min-h-[300px]">
+              <div>
+                <Workflow className="size-10 mx-auto mb-3 text-primary" />
+                <p>Your diagram will appear here — full size with readable text and zoom.</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+
+        {diagram && (
+          <div className="mt-8">
+            <Mermaid chart={diagram} />
+          </div>
+        )}
       </main>
     </div>
   );

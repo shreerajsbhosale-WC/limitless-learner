@@ -272,3 +272,11 @@ html.anime h1, html.anime h2, html.anime h3, html.anime h4 {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
+
+/* Story Mode ambient loop — slow, fixed-camera environmental drift */
+@keyframes ambient-drift {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.8; }
+  88% { opacity: 0.8; }
+  100% { transform: translate(var(--ambient-x, 14px), -180px); opacity: 0; }
+}
