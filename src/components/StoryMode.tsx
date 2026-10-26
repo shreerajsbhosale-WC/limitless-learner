@@ -18,6 +18,8 @@ import {
 import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
 
+const EFFECT_KEYS = ["none", "fireball", "slash", "spark", "aura"] as const;
+
 /* Sudden-insight / clash keyword fallback when the AI didn't tag a scene. */
 function detectEffect(text: string): EffectKey {
   const s = text.toLowerCase();
