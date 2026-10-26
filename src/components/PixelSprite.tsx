@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { drawSprite, spriteFromSeed, GRID, type SpriteSpec } from "@/lib/pixel-sprite";
+import { drawSprite, spriteFromSeed, GRID, type SpriteDirection, type SpriteSpec } from "@/lib/pixel-sprite";
 
 type Props = {
   seed: string;
@@ -7,9 +7,10 @@ type Props = {
   size?: number;
   className?: string;
   bob?: boolean;
+  direction?: SpriteDirection;
 };
 
-export function PixelSprite({ seed, spec, size = 96, className = "", bob = false }: Props) {
+export function PixelSprite({ seed, spec, size = 96, className = "", bob = false, direction = "down" }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const scale = Math.max(1, Math.round(size / GRID));
 
@@ -18,8 +19,8 @@ export function PixelSprite({ seed, spec, size = 96, className = "", bob = false
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawSprite(ctx, spriteFromSeed(seed, spec), scale);
-  }, [seed, spec, scale]);
+    drawSprite(ctx, spriteFromSeed(seed, spec), scale, direction);
+  }, [seed, spec, scale, direction]);
 
   return (
     <canvas

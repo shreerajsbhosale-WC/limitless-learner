@@ -49,6 +49,7 @@ const storySchema = {
                 speaker: { type: "string" },
                 line: { type: "string" },
                 narration: { type: "string" },
+                effect: { type: "string", enum: ["none", "fireball", "slash", "spark", "aura"] },
               },
               required: ["speaker", "line"],
             },
@@ -89,7 +90,7 @@ export type StoryCharacter = {
 export type StoryChapter = {
   title: string;
   topic: string;
-  scenes: { speaker: string; line: string; narration?: string }[];
+  scenes: { speaker: string; line: string; narration?: string; effect?: string }[];
   lesson: string;
   checkpoint: { question: string; options: string[]; correctIndex: number };
 };
@@ -117,6 +118,7 @@ Rules:
 - Invent a small cast (3-5) of pixel-RPG characters DERIVED FROM THE SOURCE: each character personifies a real concept, force, term, person, or process in the material (e.g. a mitochondrion becomes "Mitok, the Ember Forgemaster"). Give each an RPG role (Guide, Hero, Rival, Boss, Sage) and a one-line "concept" saying exactly which idea from the source they embody.
 - For each character choose pixel-sprite traits from the allowed enums, plus hex colors for hairColor, clothingColor, and skin (skin may be fantastical, e.g. #7fd6a2 for a slime sage). Match the concept: fiery concept -> warm colors, armor; abstract theory -> robe, crown.
 - Write 5-9 chapters, one per major topic of the source, in a logical learning order. Each chapter has 6-10 dialogue scenes. "speaker" MUST be a character name from the cast, or "Narrator". Lines are short (max ~45 words), in-character, playful, and carry REAL accurate content — definitions, formulas, causes, examples. No filler banter.
+- Optionally tag a scene with an "effect" for the on-screen pixel VFX: "aura" for a character reveal or power-up, "slash" for clashing ideas or a boss fight, "fireball" for energy/heat/explosive moments, "spark" for a sudden insight. Use sparingly — most scenes stay "none".
 - Each chapter ends with a plain-language "lesson" (2-3 sentences of the actual takeaway) and a 3-option checkpoint question with 0-indexed correctIndex.
 - Habitica energy: quests, parties, boss fights, loot, "you gained +XP" flavour in Narrator lines. Never sacrifice accuracy for flavour, never invent facts not supported by the source.`;
 

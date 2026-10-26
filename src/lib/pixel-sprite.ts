@@ -261,18 +261,84 @@ export function spriteFromSeed(seed: string, partial?: Partial<SpriteSpec>): Spr
   };
 }
 
-export function drawSprite(ctx: CanvasRenderingContext2D, spec: SpriteSpec, scale: number) {
+/* ===== Rigging-based multi-direction rotation =====
+   One spec acts as the anchor model: the same body/hair/clothing layers are
+   re-projected into 4 facings (down/up/left/right) with colors kept consistent. */
+export type SpriteDirection = "down" | "up" | "left" | "right";
+
+function compressTowardCenter(g: Grid, factor = 0.72): Grid {
+  const out = emptyGrid();
+  for (let i = 0; i < GRID; i++)
+    for (let j = 0; j < GRID; j++) {
+      if (!g[i][j]) continue;
+      const c = Math.min(GRID - 1, Math.max(0, Math.round(15.5 + (j - 15.5) * factor)));
+      out[i][c] = 1;
+    }
+  return out;
+}
+
+function flipGrid(g: Grid): Grid {
+  const out = emptyGrid();
+  for (let i = 0; i < GRID; i++)
+    for (let j = 0; j < GRID; j++) if (g[i][j]) out[i][GRID - 1 - j] = 1;
+  return out;
+}
+
+const sideEyes = () => {
+  const g = emptyGrid();
+  rect(g, 13, 9, 2, 2);
+  return g;
+};
+const sideMouth = () => {
+  const g = emptyGrid();
+  rect(g, 13, 12, 3, 1);
+  return g;
+};
+
+export function drawSprite(
+  ctx: CanvasRenderingContext2D,
+  spec: SpriteSpec,
+  scale: number,
+  direction: SpriteDirection = "down"
+) {
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, GRID * scale, GRID * scale);
 
-  const layers: { grid: Grid; color: string }[] = [
-    { grid: (bodyShapes[spec.body] ?? bodyShapes.round)(), color: spec.skin },
-    { grid: (clothingStyles[spec.clothing] ?? clothingStyles.tshirt)(), color: spec.clothingColor },
-    { grid: (hairStyles[spec.hair] ?? hairStyles.short)(), color: spec.hairColor },
-    { grid: (eyeStyles[spec.eyes] ?? eyeStyles.dot)(), color: "#20201f" },
-    { grid: (mouthStyles[spec.mouth] ?? mouthStyles.smile)(), color: "#7a3b2e" },
-    { grid: (accessoryStyles[spec.accessory] ?? accessoryStyles.none)(), color: "#20201f" },
-  ];
+  const body = bodyShapes[spec.body] ?? bodyShapes.round;
+  const clothing = clothingStyles[spec.clothing] ?? clothingStyles.tshirt;
+  const hair = hairStyles[spec.hair] ?? hairStyles.short;
+  const accessory = accessoryStyles[spec.accessory] ?? accessoryStyles.none;
+
+  let layers: { grid: Grid; color: string }[];
+  if (direction === "down") {
+    layers = [
+      { grid: body(), color: spec.skin },
+      { grid: clothing(), color: spec.clothingColor },
+      { grid: hair(), color: spec.hairColor },
+      { grid: (eyeStyles[spec.eyes] ?? eyeStyles.dot)(), color: "#20201f" },
+      { grid: (mouthStyles[spec.mouth] ?? mouthStyles.smile)(), color: "#7a3b2e" },
+      { grid: accessory(), color: "#20201f" },
+    ];
+  } else if (direction === "up") {
+    // Back view: silhouette and clothing unchanged, face features dropped.
+    layers = [
+      { grid: body(), color: spec.skin },
+      { grid: clothing(), color: spec.clothingColor },
+      { grid: hair(), color: spec.hairColor },
+      ...(spec.accessory !== "glasses" ? [{ grid: accessory(), color: "#20201f" }] : []),
+    ];
+  } else {
+    // Side profile: skeleton compressed toward center, one eye, mirrored for right.
+    const f = direction === "right" ? flipGrid : (g: Grid) => g;
+    layers = [
+      { grid: f(compressTowardCenter(body())), color: spec.skin },
+      { grid: f(compressTowardCenter(clothing())), color: spec.clothingColor },
+      { grid: f(compressTowardCenter(hair())), color: spec.hairColor },
+      { grid: f(compressTowardCenter(accessory())), color: "#20201f" },
+      { grid: f(sideEyes()), color: "#20201f" },
+      { grid: f(sideMouth()), color: "#7a3b2e" },
+    ];
+  }
 
   for (const layer of layers) {
     ctx.fillStyle = layer.color;
@@ -280,4 +346,139 @@ export function drawSprite(ctx: CanvasRenderingContext2D, spec: SpriteSpec, scal
       for (let j = 0; j < GRID; j++)
         if (layer.grid[i][j]) ctx.fillRect(j * scale, i * scale, scale, scale);
   }
+}
+
+/* ===== Frame-state VFX sequencing =====
+   Each effect is a 3-frame progression (orb -> blast -> fade), rendered at
+   low effective frame rate by the component for the retro feel. */
+export type EffectKey = "none" | "fireball" | "slash" | "spark" | "aura";
+
+const ringRect = (g: Grid, x: number, y: number, w: number, h: number) => {
+  rect(g, x, y, w, 1);
+  rect(g, x, y + h - 1, w, 1);
+  rect(g, x, y, 1, h);
+  rect(g, x + w - 1, y, 1, h);
+};
+
+const vfxFrames: Record<Exclude<EffectKey, "none">, (() => Grid)[]> = {
+  fireball: [
+    () => {
+      const g = emptyGrid();
+      rect(g, 14, 14, 4, 4);
+      rect(g, 13, 15, 6, 2);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      ringRect(g, 10, 10, 12, 12);
+      rect(g, 14, 12, 4, 8);
+      rect(g, 12, 14, 8, 4);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      rect(g, 11, 7, 2, 2);
+      rect(g, 19, 8, 2, 2);
+      rect(g, 9, 14, 2, 2);
+      rect(g, 21, 16, 2, 2);
+      rect(g, 13, 21, 2, 2);
+      rect(g, 18, 22, 2, 2);
+      return g;
+    },
+  ],
+  slash: [
+    () => {
+      const g = emptyGrid();
+      for (let i = 9; i <= 23; i++) g[i][26 - i] = 1;
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      for (let i = 7; i <= 25; i++) {
+        g[i][26 - i] = 1;
+        if (g[i - 1]) g[i - 1][26 - i] = 1;
+        if (g[i + 1]) g[i + 1][26 - i] = 1;
+      }
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      for (let i = 14; i <= 22; i++) g[i][24 - i] = 1;
+      return g;
+    },
+  ],
+  spark: [
+    () => {
+      const g = emptyGrid();
+      rect(g, 15, 11, 2, 10);
+      rect(g, 11, 15, 10, 2);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      rect(g, 15, 7, 2, 18);
+      rect(g, 7, 15, 18, 2);
+      rect(g, 11, 11, 2, 2);
+      rect(g, 19, 11, 2, 2);
+      rect(g, 11, 19, 2, 2);
+      rect(g, 19, 19, 2, 2);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      rect(g, 8, 9, 2, 2);
+      rect(g, 21, 7, 2, 2);
+      rect(g, 10, 20, 2, 2);
+      rect(g, 22, 19, 2, 2);
+      rect(g, 15, 13, 2, 2);
+      return g;
+    },
+  ],
+  aura: [
+    () => {
+      const g = emptyGrid();
+      ringRect(g, 10, 10, 12, 12);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      ringRect(g, 8, 8, 16, 16);
+      ringRect(g, 12, 12, 8, 8);
+      return g;
+    },
+    () => {
+      const g = emptyGrid();
+      ringRect(g, 9, 9, 14, 14);
+      rect(g, 15, 5, 2, 2);
+      rect(g, 15, 25, 2, 2);
+      return g;
+    },
+  ],
+};
+
+export const VFX_COLORS: Record<Exclude<EffectKey, "none">, [string, string]> = {
+  fireball: ["#fb923c", "#fde047"],
+  slash: ["#a78bfa", "#ede9fe"],
+  spark: ["#fde047", "#ffffff"],
+  aura: ["#34d399", "#a7f3d0"],
+};
+
+export function drawVfx(
+  ctx: CanvasRenderingContext2D,
+  effect: Exclude<EffectKey, "none">,
+  frame: number,
+  scale: number
+) {
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, GRID * scale, GRID * scale);
+  const grid = vfxFrames[effect][((frame % 3) + 3) % 3]();
+  const [core, glow] = VFX_COLORS[effect];
+  ctx.fillStyle = glow + "44";
+  for (let i = 0; i < GRID; i++)
+    for (let j = 0; j < GRID; j++)
+      if (grid[i][j]) ctx.fillRect((j - 1) * scale, (i - 1) * scale, scale * 3, scale * 3);
+  ctx.fillStyle = core;
+  for (let i = 0; i < GRID; i++)
+    for (let j = 0; j < GRID; j++)
+      if (grid[i][j]) ctx.fillRect(j * scale, i * scale, scale, scale);
 }
