@@ -344,7 +344,7 @@ export const PROFILES: Record<ProfileName, {
   allowedFeatures: string[];
   renderLinks: boolean;
   renderHtml: boolean;
-  maxChars: number;
+  maxChars?: number;
   stripAttachments?: boolean;
 }> = {
   quote_only: {
