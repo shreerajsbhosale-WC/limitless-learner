@@ -183,6 +183,39 @@ export type Database = {
         }
         Relationships: []
       }
+      override_audit: {
+        Row: {
+          case_id: string
+          data: Json
+          hash: string
+          prev_hash: string
+          seq: number
+          ts: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          case_id?: string
+          data?: Json
+          hash: string
+          prev_hash: string
+          seq?: number
+          ts: number
+          type: string
+          user_id?: string
+        }
+        Update: {
+          case_id?: string
+          data?: Json
+          hash?: string
+          prev_hash?: string
+          seq?: number
+          ts?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -231,6 +264,69 @@ export type Database = {
           id?: string
           user_id?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      screening_cases: {
+        Row: {
+          appealed_at: string | null
+          approval: Json | null
+          categories: string[]
+          content_hash: string
+          created_at: string
+          decision: Json | null
+          excerpt: string | null
+          id: string
+          internal_reasons: string[]
+          justification: string | null
+          kind: string
+          manual_review: boolean
+          mode: string
+          profile: string
+          status: string
+          updated_at: string
+          user_id: string
+          verdict: string
+        }
+        Insert: {
+          appealed_at?: string | null
+          approval?: Json | null
+          categories?: string[]
+          content_hash: string
+          created_at?: string
+          decision?: Json | null
+          excerpt?: string | null
+          id?: string
+          internal_reasons?: string[]
+          justification?: string | null
+          kind: string
+          manual_review?: boolean
+          mode: string
+          profile: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          verdict: string
+        }
+        Update: {
+          appealed_at?: string | null
+          approval?: Json | null
+          categories?: string[]
+          content_hash?: string
+          created_at?: string
+          decision?: Json | null
+          excerpt?: string | null
+          id?: string
+          internal_reasons?: string[]
+          justification?: string | null
+          kind?: string
+          manual_review?: boolean
+          mode?: string
+          profile?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verdict?: string
         }
         Relationships: []
       }
@@ -285,11 +381,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      append_override_audit: {
+        Args: {
+          p_case_id: string
+          p_data: Json
+          p_type: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       consume_ip_rate_limit: {
         Args: {
           _bucket: string
@@ -305,6 +431,10 @@ export type Database = {
       }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      redeem_screening_case: {
+        Args: { p_case_id: string; p_user_id: string }
         Returns: boolean
       }
       sync_group_xp: {
