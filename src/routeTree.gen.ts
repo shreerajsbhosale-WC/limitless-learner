@@ -21,6 +21,7 @@ import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedWeeklyRouteImport } from './routes/_authenticated/weekly'
 import { Route as AuthenticatedLibraryKitIdRouteImport } from './routes/_authenticated/library.$kitId'
+import { Route as ApiPublicScanPdfRouteImport } from './routes/api/public/scan-pdf'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,11 @@ const AuthenticatedLibraryKitIdRoute =
     path: '/$kitId',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const ApiPublicScanPdfRoute = ApiPublicScanPdfRouteImport.update({
+  id: '/api/public/scan-pdf',
+  path: '/api/public/scan-pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof AuthenticatedLibraryRouteWithChildren
   '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
+  '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/library': typeof AuthenticatedLibraryRouteWithChildren
   '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
+  '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
   '/_authenticated/weekly': typeof AuthenticatedWeeklyRoute
   '/_authenticated/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
+  '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/weekly'
     | '/library/$kitId'
+    | '/api/public/scan-pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/weekly'
     | '/library/$kitId'
+    | '/api/public/scan-pdf'
   id:
     | '__root__'
     | '/'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library'
     | '/_authenticated/weekly'
     | '/_authenticated/library/$kitId'
+    | '/api/public/scan-pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,6 +184,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   StudyRoute: typeof StudyRoute
+  ApiPublicScanPdfRoute: typeof ApiPublicScanPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryKitIdRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/api/public/scan-pdf': {
+      id: '/api/public/scan-pdf'
+      path: '/api/public/scan-pdf'
+      fullPath: '/api/public/scan-pdf'
+      preLoaderRoute: typeof ApiPublicScanPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   StudyRoute: StudyRoute,
+  ApiPublicScanPdfRoute: ApiPublicScanPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

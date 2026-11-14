@@ -22,6 +22,20 @@
       "when": 1794467875061,
       "tag": "0002_screening_appeals_review",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794651596324,
+      "tag": "0003_atomic_screening_redemption_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794651722596,
+      "tag": "0004_secure_screening_decisions_audit",
+      "breakpoints": true
     }
   ]
 }

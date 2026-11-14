@@ -429,6 +429,25 @@ export type Database = {
         Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
+      decide_screening_case: {
+        Args: {
+          p_approval?: Json
+          p_case_id: string
+          p_decision: string
+          p_note: string
+          p_reviewer_id: string
+        }
+        Returns: Json
+      }
+      file_screening_appeal: {
+        Args: {
+          p_auto_approval?: Json
+          p_case_id: string
+          p_justification: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -441,6 +460,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: number
       }
+      verify_override_audit: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
