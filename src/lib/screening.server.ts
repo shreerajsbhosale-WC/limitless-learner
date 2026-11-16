@@ -132,6 +132,10 @@ async function mintOverrideToken(row: CaseRow, secret: string): Promise<string> 
   }, secret);
 }
 
+export async function mintScreeningOverride(row: CaseRow, secret: string): Promise<string> {
+  return mintOverrideToken(row, secret);
+}
+
 export type ScreenResult =
   | { status: "allowed"; receipt?: string }
   | { status: "needs_appeal" | "pending_review" | "blocked" | "denied"; caseId?: string; appealable: boolean; reasons: string[] }
@@ -181,6 +185,16 @@ export async function screenPdfContent(admin: AdminClient, userId: string, bytes
   return existingResult(row, publicReasons(classification.categories));
 }
 
+export async function resumeApprovedPdf(admin: AdminClient, userId: string, bytes: Uint8Array, filename: string, token: string, secret: string): Promise<ScreenResult> {
+  const identifier = evaluateIdentifier(filename);
+  if (identifier.verdict !== "allow") return { status: "blocked", appealable: false, reasons: publicReasons(["filename"]) };
+  const hash = await digestHex(bytes);
+  const redeemed = await redeemOverride(admin, userId, token, hash, "pdf", secret);
+  if (!redeemed.ok) return { status: "blocked", appealable: false, reasons: ["This approval is no longer valid. Scan the file again to request a new review."] };
+  const receipt = await signPayload({ purpose: "pdf_receipt", uid: userId, hash, kind: "pdf", profile: redeemed.profile, exp: Date.now() + 10 * 60 * 1000 }, secret);
+  return { status: "approved", caseId: "redeemed", token, profile: redeemed.profile, receipt };
+}
+
 export async function redeemOverride(admin: AdminClient, userId: string, token: string, hash: string, kind: "text" | "pdf", secret: string): Promise<{ ok: true; profile: ProfileName } | { ok: false }> {
   const payload = await verifyPayload(token, secret);
   if (!payload || payload.purpose !== "override" || payload.uid !== userId || payload.hash !== hash || payload.kind !== kind || !payload.cid || !payload.nonce) return { ok: false };
@@ -197,6 +211,12 @@ export async function redeemOverride(admin: AdminClient, userId: string, token: 
 export async function verifyPdfReceipt(receipt: string, userId: string, secret: string): Promise<boolean> {
   const payload = await verifyPayload(receipt, secret);
   return Boolean(payload && payload.purpose === "pdf_receipt" && payload.kind === "pdf" && payload.uid === userId);
+}
+
+export async function redeemTextOverride(admin: AdminClient, userId: string, text: string, token: string, secret: string): Promise<boolean> {
+  const hash = await digestHex(ENCODER.encode(text));
+  const result = await redeemOverride(admin, userId, token, hash, "text", secret);
+  return result.ok;
 }
 
 export async function recordGeneratedBlock(admin: AdminClient, userId: string, content: string, result: EvaluationResult): Promise<void> {
@@ -219,11 +239,3 @@ export async function createApproval(secret: string, profile: ProfileName, by: s
   return { by, note: note.slice(0, 500), at: Date.now(), expiresAt: Date.now() + PROFILE_DEFAULTS[profile].expires, nonce: base64url(crypto.getRandomValues(new Uint8Array(16))) };
 }
 
-export async function createPdfBytes(base64: string): Promise<Uint8Array> {
-  try {
-    return fromBase64url(base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, ""));
-  } catch {
-    try { return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0)); }
-    catch { throw new Error("The uploaded PDF could not be read."); }
-  }
-}

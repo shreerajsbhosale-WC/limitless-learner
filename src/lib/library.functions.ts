@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertClean, MAX_MESSAGE_CHARS } from "@/lib/security";
 import { enforceRateLimit } from "@/lib/rate-limit.server";
+import { evaluateText } from "@/lib/screening";
 
 const materialsShape = z.object({
   title: z.string(),
@@ -26,6 +27,14 @@ export const saveStudyKit = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const serializedMaterials = JSON.stringify(data.materials);
+    const screening = evaluateText(serializedMaterials, "document", { documentHighSeverity: "block" });
+    if (screening.verdict !== "allow") {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { recordSaveBlock } = await import("@/lib/screening.server");
+      await recordSaveBlock(supabaseAdmin, userId, serializedMaterials, screening);
+      throw new Error("This study kit did not pass the final content check and was not saved.");
+    }
     const { data: row, error } = await supabase
       .from("study_kits")
       .insert({ user_id: userId, title: data.title, source_type: data.sourceType, materials: data.materials })

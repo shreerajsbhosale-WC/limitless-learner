@@ -23,6 +23,7 @@ export const RATE_LIMITS = {
 /** Guests get a tighter allowance than signed-in accounts. */
 export const GUEST_RATE_LIMITS = {
   generate: { max: 5, windowSeconds: 60 * 60 },
+  screening: { max: 20, windowSeconds: 60 * 60 },
   story: { max: 5, windowSeconds: 60 * 60 },
   explain: { max: 30, windowSeconds: 60 * 60 },
   meta: { max: 30, windowSeconds: 60 * 60 },

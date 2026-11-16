@@ -5,6 +5,8 @@ import { enforceGuestRateLimit } from "@/lib/rate-limit.server";
 
 const inputSchema = z.object({
   text: z.string().min(20).max(120_000),
+  screeningToken: z.string().max(4000).optional(),
+  pdfReceipt: z.string().max(4000).optional(),
   title: z.string().max(200).optional(),
   animeMode: z.boolean().optional(),
   musicMode: z.boolean().optional(),
@@ -63,6 +65,25 @@ export type StudyMaterials = {
 export const generateStudyMaterials = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<StudyMaterials> => {
+    const overrideSecret = process.env["OVERRIDE_SECRET"];
+    if (!overrideSecret || overrideSecret.length < 32) throw new Error("Screening service is not configured.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const { redeemTextOverride, resolveActorId, screenTextContent, verifyPdfReceipt } = await import("@/lib/screening.server");
+    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", overrideSecret);
+    if (data.sourceLabel?.startsWith("PDF:") && (!data.pdfReceipt || !await verifyPdfReceipt(data.pdfReceipt, actorId, overrideSecret))) {
+      throw new Error("This PDF has not passed the file safety check. Upload it again to continue.");
+    }
+    if (data.screeningToken) {
+      const redeemed = await redeemTextOverride(supabaseAdmin, actorId, data.text, data.screeningToken, overrideSecret);
+      if (!redeemed) throw new Error("This approval is no longer valid. Check the source text again to request a new review.");
+    } else {
+      const screening = await screenTextContent(supabaseAdmin, actorId, data.text, "document", overrideSecret);
+      if (screening.status !== "allowed") {
+        if (screening.status === "approved") throw new Error("Approved text must be resubmitted from the review message.");
+        throw new Error(screening.status === "pending_review" ? "This source is waiting for review." : screening.status === "denied" ? "A reviewer declined this source." : "This source needs review before a study kit can be generated.");
+      }
+    }
     // Reachable without an account (guests may generate but not save), so the
     // per-visitor limiter is what protects the AI budget here.
     await enforceGuestRateLimit("generate");
@@ -120,6 +141,13 @@ Be accurate, specific, and faithful to the source — never invent facts or form
     const args = toolCall?.function?.arguments;
     if (!args) throw new Error("AI returned no structured output");
     const parsed = typeof args === "string" ? JSON.parse(args) : args;
+    const materialsText = JSON.stringify(parsed);
+    const generatedCheck = (await import("@/lib/screening")).evaluateText(materialsText, "document", { documentHighSeverity: "block" });
+    if (generatedCheck.verdict !== "allow") {
+      const { recordGeneratedBlock } = await import("@/lib/screening.server");
+      await recordGeneratedBlock(supabaseAdmin, actorId, materialsText, generatedCheck);
+      throw new Error("The generated study kit did not pass the content check. Try again with a different source.");
+    }
     return parsed as StudyMaterials;
   });
 

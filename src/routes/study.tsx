@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords } from "lucide-react";
+import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords, ShieldAlert, Clock3 } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
 import { PdfDropzone } from "@/components/PdfDropzone";
@@ -24,12 +24,19 @@ import { useMusicMode } from "@/hooks/use-music-mode";
 import { useProgress } from "@/hooks/use-progress";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { screenStudyText, fileScreeningAppeal, getScreeningAppealStatus } from "@/lib/screening.functions";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/study")({
   head: () => ({
     meta: [
       { title: "Study — Limitless" },
       { name: "description", content: "Upload a PDF, paste text, or drop a video link to generate notes, flashcards, and quizzes." },
+      { property: "og:title", content: "Study — Limitless" },
+      { property: "og:description", content: "Create notes, flashcards, and quizzes from trusted study material." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: StudyPage,
@@ -39,6 +46,9 @@ function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const fetchVideo = useServerFn(fetchVideoMeta);
   const saveKit = useServerFn(saveStudyKit);
+  const screenText = useServerFn(screenStudyText);
+  const appeal = useServerFn(fileScreeningAppeal);
+  const checkAppeal = useServerFn(getScreeningAppealStatus);
   const animeMode = false;
   const { enabled: musicMode } = useMusicMode();
   const { recordKitGenerated } = useProgress();
@@ -53,13 +63,20 @@ function StudyPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [saved, setSaved] = useState(false);
   const [sourceText, setSourceText] = useState("");
+  const [screenNotice, setScreenNotice] = useState<{ kind: "pdf" | "text"; caseId: string; reasons: string[]; status: "open" | "pending_review"; sourceText?: string; title?: string; sourceLabel?: string; pdfFile?: File; pdfReceipt?: string } | null>(null);
+  const [appealText, setAppealText] = useState("");
+  const [appealBusy, setAppealBusy] = useState(false);
+  const [screeningToken, setScreeningToken] = useState<string>();
+  const [pdfReceipt, setPdfReceipt] = useState<string>();
 
-  const runGenerate = async (text: string, title: string, sourceLabel?: string) => {
+  const runGenerate = async (text: string, title: string, sourceLabel?: string, options?: { screeningToken?: string; pdfReceipt?: string }) => {
     setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
     const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
     setSourceText(trimmed);
     const result = await generate({
       data: { text: trimmed, title, animeMode, musicMode, sourceLabel },
+      // The server checks this exact source again before calling AI.
+      ...(options ? { data: { text: trimmed, title, animeMode, musicMode, sourceLabel, screeningToken: options.screeningToken, pdfReceipt: options.pdfReceipt } } : {}),
     });
 
     setMaterials(result);
@@ -67,13 +84,59 @@ function StudyPage() {
     setSaved(false);
   };
 
+  const handleTextScreenResult = async (text: string, title: string, sourceLabel?: string, receipt?: string) => {
+    const result = await screenText({ data: { text, mode: "document" } });
+    if (result.status === "allowed") {
+      setScreenNotice(null);
+      await runGenerate(text, title, sourceLabel, { pdfReceipt: receipt });
+      return;
+    }
+    if (result.status === "approved") {
+      setScreenNotice(null);
+      await runGenerate(text, title, sourceLabel, { screeningToken: result.token, pdfReceipt: receipt });
+      return;
+    }
+    if (result.caseId) {
+      setScreenNotice({ kind: "text", caseId: result.caseId, reasons: result.reasons, status: result.status === "pending_review" ? "pending_review" : "open", sourceText: text, title, sourceLabel, pdfReceipt: receipt });
+      setAppealText("");
+      return;
+    }
+    throw new Error(result.reasons.join(" ") || "This source needs a review before a study kit can be generated.");
+  };
+
+  const scanPdfFile = async (file: File, overrideToken?: string) => {
+    const body = new FormData();
+    body.append("file", file);
+    if (overrideToken) body.append("overrideToken", overrideToken);
+    const headers: HeadersInit = user ? { Authorization: `Bearer ${(await import("@/integrations/supabase/client")).supabase.auth.getSession ? (await (await import("@/integrations/supabase/client")).supabase.auth.getSession()).data.session?.access_token ?? "" : ""}` } : {};
+    const response = await fetch("/api/public/scan-pdf", { method: "POST", headers, body });
+    const result = await response.json() as { status?: string; caseId?: string; appealable?: boolean; reasons?: string[]; receipt?: string; error?: string };
+    if (!response.ok) throw new Error(result.error ?? "The PDF could not be screened.");
+    if (result.status !== "allowed" && result.status !== "approved") {
+      if (result.caseId && result.appealable) {
+        setScreenNotice({ kind: "pdf", caseId: result.caseId, reasons: result.reasons ?? [], status: result.status === "pending_review" ? "pending_review" : "open", pdfFile: file });
+        setAppealText("");
+        return null;
+      }
+      throw new Error((result.reasons ?? ["This PDF cannot be processed."]).join(" "));
+    }
+    return result.receipt;
+  };
+
+  const processPdf = async (file: File, overrideToken?: string) => {
+    setStatus("Checking PDF safety…");
+    const receipt = await scanPdfFile(file, overrideToken);
+    if (!receipt) return;
+    setStatus("Reading your PDF…");
+    const text = await extractPdfText(file);
+    if (text.length < 100) throw new Error("Couldn't extract enough text. Try a text-based PDF.");
+    await handleTextScreenResult(text, file.name.replace(/\.pdf$/i, ""), `PDF: ${file.name}`, receipt);
+  };
+
   const handleFile = async (file: File) => {
     setBusy(true); setError(null); setMaterials(null);
     try {
-      setStatus("Reading your PDF…");
-      const text = await extractPdfText(file);
-      if (text.length < 100) throw new Error("Couldn't extract enough text. Try a text-based PDF.");
-      await runGenerate(text, file.name.replace(/\.pdf$/i, ""), `PDF: ${file.name}`);
+      await processPdf(file);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -85,7 +148,7 @@ function StudyPage() {
     if (textInput.trim().length < 50) { toast.error("Add at least a paragraph of text."); return; }
     setBusy(true); setError(null); setMaterials(null);
     try {
-      await runGenerate(textInput, textInput.split(/\s+/).slice(0, 8).join(" "), "Personal notes");
+      await handleTextScreenResult(textInput, textInput.split(/\s+/).slice(0, 8).join(" "), "Personal notes");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -99,11 +162,60 @@ function StudyPage() {
     try {
       setStatus("Fetching video info…");
       const meta = await fetchVideo({ data: { url: videoUrl } });
-      await runGenerate(meta.text, meta.title, `Video: ${videoUrl}`);
+      await handleTextScreenResult(meta.text, meta.title, `Video: ${videoUrl}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't process that video link.");
     } finally {
       setBusy(false); setStatus(undefined);
+    }
+  };
+
+  const submitAppeal = async () => {
+    if (!screenNotice) return;
+    setAppealBusy(true);
+    try {
+      const result = await appeal({ data: { caseId: screenNotice.caseId, justification: appealText } });
+      if (result.status === "approved" && "token" in result) {
+        await resumeAfterApproval(result.token);
+      } else if (result.status === "pending_review") {
+        setScreenNotice({ ...screenNotice, status: "pending_review" });
+        toast.success("Your appeal was sent for review.");
+      } else if (result.status === "justification_too_short") {
+        toast.error("Please explain why you need this material in at least 15 characters.");
+      } else {
+        toast.error("This appeal could not be submitted. Please review your note and try again.");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Appeal could not be submitted.");
+    } finally {
+      setAppealBusy(false);
+    }
+  };
+
+  const resumeAfterApproval = async (token: string) => {
+    const notice = screenNotice;
+    if (!notice) return;
+    setScreeningToken(token);
+    setScreenNotice(null);
+    if (notice.kind === "pdf" && notice.pdfFile) {
+      await processPdf(notice.pdfFile, token);
+    } else if (notice.sourceText && notice.title) {
+      await runGenerate(notice.sourceText, notice.title, notice.sourceLabel, { screeningToken: token, pdfReceipt: notice.pdfReceipt });
+    }
+  };
+
+  const refreshAppeal = async () => {
+    if (!screenNotice) return;
+    setAppealBusy(true);
+    try {
+      const result = await checkAppeal({ data: { caseId: screenNotice.caseId } });
+      if (result.status === "approved" && "token" in result) await resumeAfterApproval(result.token);
+      else if (result.status === "denied") toast.error("A reviewer declined this appeal.");
+      else toast.info("Your appeal is still waiting for review.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not check appeal status.");
+    } finally {
+      setAppealBusy(false);
     }
   };
 
@@ -122,6 +234,25 @@ function StudyPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
+      <Dialog open={Boolean(screenNotice)} onOpenChange={(open) => { if (!open && screenNotice?.status !== "pending_review") setScreenNotice(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><ShieldAlert className="size-5 text-primary" />{screenNotice?.status === "pending_review" ? "Appeal under review" : "This source needs a review"}</DialogTitle>
+            <DialogDescription>
+              {screenNotice?.status === "pending_review" ? "Your study kit will stay paused until a reviewer makes a decision." : "We found content that needs a second look before it can be used to create a study kit."}
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="space-y-2 text-sm text-muted-foreground">{screenNotice?.reasons.map((reason) => <li key={reason}>• {reason}</li>)}</ul>
+          {screenNotice?.status === "open" && <Textarea value={appealText} onChange={(event) => setAppealText(event.target.value)} maxLength={1000} placeholder="Explain why this is legitimate study material…" className="min-h-28" />}
+          <DialogFooter>
+            {screenNotice?.status === "pending_review" ? (
+              <Button onClick={refreshAppeal} disabled={appealBusy}><Clock3 className="mr-2 size-4" />{appealBusy ? "Checking…" : "Check status"}</Button>
+            ) : (
+              <Button onClick={submitAppeal} disabled={appealBusy || appealText.trim().length < 15}>{appealBusy ? "Sending…" : "Submit appeal"}</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <main className="mx-auto max-w-5xl px-6 py-10">
         <Breadcrumbs items={[{ label: materials ? materials.title : "Study" }]} />
         <div className="flex items-center justify-between mb-8">

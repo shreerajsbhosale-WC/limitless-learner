@@ -1,13 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import type { ProfileName } from "@/lib/screening";
+import { enforceGuestRateLimit } from "@/lib/rate-limit.server";
 
 const appealSchema = z.object({ caseId: z.string().uuid(), justification: z.string().min(1).max(1000) });
 const decisionSchema = z.object({ caseId: z.string().uuid(), decision: z.enum(["approve", "deny"]), note: z.string().max(500).default("") });
 
-async function ensureReviewer(supabase: { from: (table: "user_roles") => any }, userId: string): Promise<void> {
+async function ensureReviewer(supabase: SupabaseClient<Database>, userId: string): Promise<void> {
   const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "reviewer").maybeSingle();
   if (error || !data) throw new Error("Reviewer access required.");
 }
@@ -15,10 +17,12 @@ async function ensureReviewer(supabase: { from: (table: "user_roles") => any }, 
 export const screenStudyText = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ text: z.string().min(1).max(120_000), mode: z.enum(["input", "document"]).default("document") }).parse(data))
   .handler(async ({ data }) => {
+    await enforceGuestRateLimit("screening");
     const secret = process.env["OVERRIDE_SECRET"];
     if (!secret || secret.length < 32) throw new Error("Screening service is not configured.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveActorId, screenTextContent } = await import("@/lib/screening.server");
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
     const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     return screenTextContent(supabaseAdmin, actorId, data.text, data.mode, secret);
   });
@@ -26,11 +30,13 @@ export const screenStudyText = createServerFn({ method: "POST" })
 export const fileScreeningAppeal = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => appealSchema.parse(data))
   .handler(async ({ data }) => {
+    await enforceGuestRateLimit("screening");
     const secret = process.env["OVERRIDE_SECRET"];
     if (!secret || secret.length < 32) throw new Error("Screening service is not configured.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { evaluateText, PROFILES } = await import("@/lib/screening");
+    const { evaluateText } = await import("@/lib/screening");
     const { resolveActorId, createApproval } = await import("@/lib/screening.server");
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
     const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     const { data: row, error } = await supabaseAdmin.from("screening_cases").select("id, user_id, status, profile, manual_review").eq("id", data.caseId).eq("user_id", actorId).maybeSingle();
     if (error || !row) return { status: "not_found" as const };
@@ -61,10 +67,12 @@ export const fileScreeningAppeal = createServerFn({ method: "POST" })
 export const getScreeningAppealStatus = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ caseId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
+    await enforceGuestRateLimit("screening");
     const secret = process.env["OVERRIDE_SECRET"];
     if (!secret || secret.length < 32) throw new Error("Screening service is not configured.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveActorId, mintScreeningOverride } = await import("@/lib/screening.server");
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
     const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     const { data: row, error } = await supabaseAdmin.from("screening_cases").select("*").eq("id", data.caseId).eq("user_id", actorId).maybeSingle();
     if (error || !row) return { status: "not_found" as const };
@@ -88,6 +96,18 @@ export const listReviewQueue = createServerFn({ method: "GET" })
       .select("id, user_id, kind, mode, excerpt, categories, internal_reasons, justification, profile, appealed_at, created_at")
       .eq("status", "pending_review").order("appealed_at", { ascending: true });
     if (error) throw new Error("The review queue could not be loaded.");
+    return data ?? [];
+  });
+
+export const listScreeningHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await ensureReviewer(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.from("screening_cases")
+      .select("id, user_id, kind, mode, excerpt, categories, internal_reasons, status, verdict, created_at, appealed_at, updated_at")
+      .order("created_at", { ascending: false }).limit(200);
+    if (error) throw new Error("Screening history could not be loaded.");
     return data ?? [];
   });
 
