@@ -12,6 +12,7 @@ import {
   LogOut,
   GraduationCap,
   Compass,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +38,7 @@ const navItems = [
   { title: "Assistant", url: "/assistant", icon: MessageSquare },
   { title: "Groups", url: "/groups", icon: Trophy },
   { title: "Flowcharts", url: "/flowchart", icon: StickyNote },
+  { title: "Security review", url: "/review", icon: ShieldCheck },
 ] as const;
 
 export function AppSidebar() {

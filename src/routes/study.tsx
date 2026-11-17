@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { screenStudyText, fileScreeningAppeal, getScreeningAppealStatus } from "@/lib/screening.functions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/study")({
   head: () => ({
@@ -66,17 +66,12 @@ function StudyPage() {
   const [screenNotice, setScreenNotice] = useState<{ kind: "pdf" | "text"; caseId: string; reasons: string[]; status: "open" | "pending_review"; sourceText?: string; title?: string; sourceLabel?: string; pdfFile?: File; pdfReceipt?: string } | null>(null);
   const [appealText, setAppealText] = useState("");
   const [appealBusy, setAppealBusy] = useState(false);
-  const [screeningToken, setScreeningToken] = useState<string>();
-  const [pdfReceipt, setPdfReceipt] = useState<string>();
-
   const runGenerate = async (text: string, title: string, sourceLabel?: string, options?: { screeningToken?: string; pdfReceipt?: string }) => {
     setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
     const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
     setSourceText(trimmed);
     const result = await generate({
-      data: { text: trimmed, title, animeMode, musicMode, sourceLabel },
-      // The server checks this exact source again before calling AI.
-      ...(options ? { data: { text: trimmed, title, animeMode, musicMode, sourceLabel, screeningToken: options.screeningToken, pdfReceipt: options.pdfReceipt } } : {}),
+      data: { text: trimmed, title, animeMode, musicMode, sourceLabel, screeningToken: options?.screeningToken, pdfReceipt: options?.pdfReceipt },
     });
 
     setMaterials(result);
@@ -85,19 +80,20 @@ function StudyPage() {
   };
 
   const handleTextScreenResult = async (text: string, title: string, sourceLabel?: string, receipt?: string) => {
-    const result = await screenText({ data: { text, mode: "document" } });
+    const screenedText = text.slice(0, 80_000);
+    const result = await screenText({ data: { text: screenedText, mode: "document" } });
     if (result.status === "allowed") {
       setScreenNotice(null);
-      await runGenerate(text, title, sourceLabel, { pdfReceipt: receipt });
+      await runGenerate(screenedText, title, sourceLabel, { pdfReceipt: receipt });
       return;
     }
     if (result.status === "approved") {
       setScreenNotice(null);
-      await runGenerate(text, title, sourceLabel, { screeningToken: result.token, pdfReceipt: receipt });
+      await runGenerate(screenedText, title, sourceLabel, { screeningToken: result.token, pdfReceipt: receipt });
       return;
     }
     if (result.caseId) {
-      setScreenNotice({ kind: "text", caseId: result.caseId, reasons: result.reasons, status: result.status === "pending_review" ? "pending_review" : "open", sourceText: text, title, sourceLabel, pdfReceipt: receipt });
+      setScreenNotice({ kind: "text", caseId: result.caseId, reasons: result.reasons, status: result.status === "pending_review" ? "pending_review" : "open", sourceText: screenedText, title, sourceLabel, pdfReceipt: receipt });
       setAppealText("");
       return;
     }
@@ -108,7 +104,8 @@ function StudyPage() {
     const body = new FormData();
     body.append("file", file);
     if (overrideToken) body.append("overrideToken", overrideToken);
-    const headers: HeadersInit = user ? { Authorization: `Bearer ${(await import("@/integrations/supabase/client")).supabase.auth.getSession ? (await (await import("@/integrations/supabase/client")).supabase.auth.getSession()).data.session?.access_token ?? "" : ""}` } : {};
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: HeadersInit = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
     const response = await fetch("/api/public/scan-pdf", { method: "POST", headers, body });
     const result = await response.json() as { status?: string; caseId?: string; appealable?: boolean; reasons?: string[]; receipt?: string; error?: string };
     if (!response.ok) throw new Error(result.error ?? "The PDF could not be screened.");
@@ -195,7 +192,6 @@ function StudyPage() {
   const resumeAfterApproval = async (token: string) => {
     const notice = screenNotice;
     if (!notice) return;
-    setScreeningToken(token);
     setScreenNotice(null);
     if (notice.kind === "pdf" && notice.pdfFile) {
       await processPdf(notice.pdfFile, token);

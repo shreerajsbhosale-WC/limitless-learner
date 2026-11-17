@@ -69,25 +69,8 @@ export async function validatePdfFile(file: File): Promise<ValidationResult> {
     return { ok: false, error: "That PDF looks incomplete or corrupted." };
   }
 
-  const body = latin1(buffer);
-
-  // Embedded JavaScript and auto-run actions are rare in study material and a
-  // common attack vector — the upload pipeline rejects them outright.
-  if (/\/JavaScript\b|\/JS\b|\/OpenAction\b|\/AA\b|\/Launch\b/.test(body)) {
-    return {
-      ok: false,
-      error: "This PDF contains embedded scripts or auto-run actions and can't be processed.",
-    };
-  }
-
-  // Attached payloads and embedded media are not needed to read a document.
-  if (/\/EmbeddedFile\b|\/RichMedia\b|\/XFA\b/.test(body)) {
-    return {
-      ok: false,
-      error: "This PDF has embedded files or media attached and can't be processed.",
-    };
-  }
-
+  // Active content and embedded-file detection is handled by the authoritative
+  // bounded server scanner so flagged documents can enter the appeal flow.
   return { ok: true };
 }
 

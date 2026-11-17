@@ -19,6 +19,7 @@ import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedHabitsRouteImport } from './routes/_authenticated/habits'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
+import { Route as AuthenticatedReviewRouteImport } from './routes/_authenticated/review'
 import { Route as AuthenticatedWeeklyRouteImport } from './routes/_authenticated/weekly'
 import { Route as AuthenticatedLibraryKitIdRouteImport } from './routes/_authenticated/library.$kitId'
 import { Route as ApiPublicScanPdfRouteImport } from './routes/api/public/scan-pdf'
@@ -72,6 +73,11 @@ const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReviewRoute = AuthenticatedReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWeeklyRoute = AuthenticatedWeeklyRouteImport.update({
   id: '/weekly',
   path: '/weekly',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/groups': typeof AuthenticatedGroupsRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/review': typeof AuthenticatedReviewRoute
   '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
   '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/groups': typeof AuthenticatedGroupsRoute
   '/habits': typeof AuthenticatedHabitsRoute
   '/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/review': typeof AuthenticatedReviewRoute
   '/weekly': typeof AuthenticatedWeeklyRoute
   '/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
   '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/habits': typeof AuthenticatedHabitsRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
+  '/_authenticated/review': typeof AuthenticatedReviewRoute
   '/_authenticated/weekly': typeof AuthenticatedWeeklyRoute
   '/_authenticated/library/$kitId': typeof AuthenticatedLibraryKitIdRoute
   '/api/public/scan-pdf': typeof ApiPublicScanPdfRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/habits'
     | '/library'
+    | '/review'
     | '/weekly'
     | '/library/$kitId'
     | '/api/public/scan-pdf'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/habits'
     | '/library'
+    | '/review'
     | '/weekly'
     | '/library/$kitId'
     | '/api/public/scan-pdf'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/groups'
     | '/_authenticated/habits'
     | '/_authenticated/library'
+    | '/_authenticated/review'
     | '/_authenticated/weekly'
     | '/_authenticated/library/$kitId'
     | '/api/public/scan-pdf'
@@ -259,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review': {
+      id: '/_authenticated/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof AuthenticatedReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/weekly': {
       id: '/_authenticated/weekly'
       path: '/weekly'
@@ -301,6 +320,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHabitsRoute: typeof AuthenticatedHabitsRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
+  AuthenticatedReviewRoute: typeof AuthenticatedReviewRoute
   AuthenticatedWeeklyRoute: typeof AuthenticatedWeeklyRoute
 }
 
@@ -311,6 +331,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHabitsRoute: AuthenticatedHabitsRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
+  AuthenticatedReviewRoute: AuthenticatedReviewRoute,
   AuthenticatedWeeklyRoute: AuthenticatedWeeklyRoute,
 }
 
