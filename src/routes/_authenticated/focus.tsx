@@ -9,7 +9,14 @@ import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/focus")({
-  head: () => ({ meta: [{ title: "Focus Timer — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "Focus Timer — Limitless" },
+    { name: "description", content: "Use the Limitless focus timer to structure study sessions and breaks." },
+    { property: "og:title", content: "Focus Timer — Limitless" },
+    { property: "og:description", content: "A focused study timer with break sessions." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: FocusPage,
 });
 

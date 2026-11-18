@@ -14,6 +14,14 @@ import { getStudyKit } from "@/lib/library.functions";
 import type { StudyMaterials } from "@/lib/study.functions";
 
 export const Route = createFileRoute("/_authenticated/library/$kitId")({
+  head: () => ({ meta: [
+    { title: "Saved study kit — Limitless" },
+    { name: "description", content: "Review notes, flashcards, and quizzes in a saved Limitless study kit." },
+    { property: "og:title", content: "Saved study kit — Limitless" },
+    { property: "og:description", content: "Open a saved study kit in your Limitless library." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: KitPage,
 });
 

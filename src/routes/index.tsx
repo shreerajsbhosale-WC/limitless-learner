@@ -22,6 +22,8 @@ export const Route = createFileRoute("/")({
         content:
           "Upload a PDF and Limitless instantly generates notes, flashcards, and quizzes.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: LandingPage,

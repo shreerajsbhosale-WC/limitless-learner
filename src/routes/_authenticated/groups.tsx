@@ -11,7 +11,14 @@ import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/groups")({
-  head: () => ({ meta: [{ title: "Study groups — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "Study groups — Limitless" },
+    { name: "description", content: "Study with classmates in Limitless groups and compare your progress." },
+    { property: "og:title", content: "Study groups — Limitless" },
+    { property: "og:description", content: "Private group learning and study leaderboards." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: GroupsPage,
 });
 

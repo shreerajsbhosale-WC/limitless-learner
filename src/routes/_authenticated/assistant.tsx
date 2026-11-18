@@ -10,7 +10,14 @@ import { askAssistant, listChatHistory, clearChatHistory } from "@/lib/library.f
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
-  head: () => ({ meta: [{ title: "AI Assistant — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "AI Assistant — Limitless" },
+    { name: "description", content: "Ask the Limitless study assistant questions and get clear explanations." },
+    { property: "og:title", content: "AI Assistant — Limitless" },
+    { property: "og:description", content: "Get helpful explanations from your personal study assistant." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AssistantPage,
 });
 

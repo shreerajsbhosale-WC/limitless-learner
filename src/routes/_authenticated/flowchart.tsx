@@ -13,7 +13,14 @@ import { extractPdfText } from "@/lib/pdf";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/flowchart")({
-  head: () => ({ meta: [{ title: "Flowcharts — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "Flowcharts — Limitless" },
+    { name: "description", content: "Turn study text into clear flowcharts, mind maps, and sequence diagrams." },
+    { property: "og:title", content: "Flowcharts — Limitless" },
+    { property: "og:description", content: "Create visual study diagrams from your material." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: FlowchartPage,
 });
 

@@ -8,7 +8,14 @@ import { listStudyKits, deleteStudyKit } from "@/lib/library.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/library")({
-  head: () => ({ meta: [{ title: "My library — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "My library — Limitless" },
+    { name: "description", content: "Browse your saved Limitless study kits." },
+    { property: "og:title", content: "My library — Limitless" },
+    { property: "og:description", content: "Your saved notes, flashcards, and quizzes." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: LibraryPage,
 });
 

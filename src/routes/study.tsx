@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords, ShieldAlert, Clock3 } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
@@ -46,6 +48,7 @@ function StudyPage() {
   const generate = useServerFn(generateStudyMaterials);
   const fetchVideo = useServerFn(fetchVideoMeta);
   const saveKit = useServerFn(saveStudyKit);
+  const qc = useQueryClient();
   const screenText = useServerFn(screenStudyText);
   const appeal = useServerFn(fileScreeningAppeal);
   const checkAppeal = useServerFn(getScreeningAppealStatus);
@@ -66,6 +69,9 @@ function StudyPage() {
   const [screenNotice, setScreenNotice] = useState<{ kind: "pdf" | "text"; caseId: string; reasons: string[]; status: "open" | "pending_review"; sourceText?: string; title?: string; sourceLabel?: string; pdfFile?: File; pdfReceipt?: string } | null>(null);
   const [appealText, setAppealText] = useState("");
   const [appealBusy, setAppealBusy] = useState(false);
+  const [approveNotice, setApproveNotice] = useState<{ kind: "pdf" | "text"; caseId: string; sourceText?: string; title?: string; sourceLabel?: string; pdfFile?: File; pdfReceipt?: string } | null>(null);
+  const [approvalToken, setApprovalToken] = useState<string>();
+  const saveMutation = useMutation({ mutationFn: (input: { title: string; sourceType: string; materials: StudyMaterials }) => saveKit({ data: input }), onSuccess: async () => { setSaved(true); await qc.invalidateQueries({ queryKey: ["kits"] }); toast.success("Saved to your library"); }, onError: (e) => toast.error(e instanceof Error ? e.message : "Save failed") });
   const runGenerate = async (text: string, title: string, sourceLabel?: string, options?: { screeningToken?: string; pdfReceipt?: string }) => {
     setStatus(musicMode ? "Tuning your study kit…" : animeMode ? "Powering up your study kit…" : "Crafting your study kit…");
     const trimmed = text.length > 80_000 ? text.slice(0, 80_000) : text;
@@ -88,25 +94,27 @@ function StudyPage() {
       return;
     }
     if (result.status === "approved") {
-      setScreenNotice(null);
-      await runGenerate(screenedText, title, sourceLabel, { screeningToken: result.token, pdfReceipt: receipt });
+      setApproveNotice({ kind: "text", caseId: result.caseId, sourceText: screenedText, title, sourceLabel, pdfReceipt: receipt });
+      setApprovalToken(result.token);
       return;
     }
-    if (result.caseId) {
+    if (result.caseId && result.appealable) {
       setScreenNotice({ kind: "text", caseId: result.caseId, reasons: result.reasons, status: result.status === "pending_review" ? "pending_review" : "open", sourceText: screenedText, title, sourceLabel, pdfReceipt: receipt });
       setAppealText("");
       return;
     }
-    throw new Error(result.reasons.join(" ") || "This source needs a review before a study kit can be generated.");
+    throw new Error("reasons" in result ? result.reasons.join(" ") : "This source needs a review before a study kit can be generated.");
   };
 
   const scanPdfFile = async (file: File, overrideToken?: string) => {
-    const body = new FormData();
-    body.append("file", file);
-    if (overrideToken) body.append("overrideToken", overrideToken);
     const { data: { session } } = await supabase.auth.getSession();
-    const headers: HeadersInit = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
-    const response = await fetch("/api/public/scan-pdf", { method: "POST", headers, body });
+    const headers: HeadersInit = {
+      "Content-Type": "application/pdf",
+      "X-File-Name": file.name,
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      ...(overrideToken ? { "X-Screening-Override": overrideToken } : {}),
+    };
+    const response = await fetch("/api/public/scan-pdf", { method: "POST", headers, body: file });
     const result = await response.json() as { status?: string; caseId?: string; appealable?: boolean; reasons?: string[]; receipt?: string; error?: string };
     if (!response.ok) throw new Error(result.error ?? "The PDF could not be screened.");
     if (result.status !== "allowed" && result.status !== "approved") {
@@ -173,7 +181,10 @@ function StudyPage() {
     try {
       const result = await appeal({ data: { caseId: screenNotice.caseId, justification: appealText } });
       if (result.status === "approved" && "token" in result) {
-        await resumeAfterApproval(result.token);
+        const notice = screenNotice;
+        setScreenNotice(null);
+        setApproveNotice({ ...notice });
+        setApprovalToken(result.token);
       } else if (result.status === "pending_review") {
         setScreenNotice({ ...screenNotice, status: "pending_review" });
         toast.success("Your appeal was sent for review.");
@@ -190,13 +201,23 @@ function StudyPage() {
   };
 
   const resumeAfterApproval = async (token: string) => {
-    const notice = screenNotice;
-    if (!notice) return;
+    const notice = approveNotice;
+    if (!notice || !token) return;
+    setApproveNotice(null);
     setScreenNotice(null);
-    if (notice.kind === "pdf" && notice.pdfFile) {
-      await processPdf(notice.pdfFile, token);
-    } else if (notice.sourceText && notice.title) {
-      await runGenerate(notice.sourceText, notice.title, notice.sourceLabel, { screeningToken: token, pdfReceipt: notice.pdfReceipt });
+    setApprovalToken(undefined);
+    setBusy(true);
+    try {
+      if (notice.kind === "pdf" && notice.pdfFile) {
+        await processPdf(notice.pdfFile, token);
+      } else if (notice.sourceText && notice.title) {
+        await runGenerate(notice.sourceText, notice.title, notice.sourceLabel, { screeningToken: token, pdfReceipt: notice.pdfReceipt });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The approved material could not be processed.");
+    } finally {
+      setBusy(false);
+      setStatus(undefined);
     }
   };
 
@@ -205,9 +226,14 @@ function StudyPage() {
     setAppealBusy(true);
     try {
       const result = await checkAppeal({ data: { caseId: screenNotice.caseId } });
-      if (result.status === "approved" && "token" in result) await resumeAfterApproval(result.token);
-      else if (result.status === "denied") toast.error("A reviewer declined this appeal.");
-      else toast.info("Your appeal is still waiting for review.");
+      if (result.status === "approved" && "token" in result) {
+        setScreenNotice(null);
+        setApproveNotice({ ...screenNotice });
+        setApprovalToken(result.token);
+      } else if (result.status === "denied") {
+        setScreenNotice(null);
+        toast.error("A reviewer declined this appeal.");
+      } else toast.info("Your appeal is still waiting for review.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not check appeal status.");
     } finally {
@@ -219,9 +245,7 @@ function StudyPage() {
     if (!materials) return;
     if (!user) { toast.error("Sign in to save kits to your library."); return; }
     try {
-      await saveKit({ data: { title: materials.title, sourceType, materials } });
-      setSaved(true);
-      toast.success("Saved to your library");
+      await saveMutation.mutateAsync({ title: materials.title, sourceType, materials });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
     }
@@ -249,6 +273,12 @@ function StudyPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={Boolean(approveNotice && approvalToken)} onOpenChange={(open) => { if (!open) { setApproveNotice(null); setApprovalToken(undefined); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Appeal approved</DialogTitle><DialogDescription>This source can now be used to make your study kit.</DialogDescription></DialogHeader>
+          <DialogFooter><Button onClick={() => { if (approvalToken) void resumeAfterApproval(approvalToken); }} disabled={busy}>{busy ? "Preparing…" : "Continue to study"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <main className="mx-auto max-w-5xl px-6 py-10">
         <Breadcrumbs items={[{ label: materials ? materials.title : "Study" }]} />
         <div className="flex items-center justify-between mb-8">
@@ -259,7 +289,7 @@ function StudyPage() {
           {materials && (
             <div className="flex gap-2">
               {user && (
-                <Button variant="outline" size="sm" onClick={handleSave} disabled={saved}>
+                <Button variant="outline" size="sm" onClick={handleSave} disabled={saved || saveMutation.isPending}>
                   <Save className="size-4 mr-2" /> {saved ? "Saved" : "Save to library"}
                 </Button>
               )}

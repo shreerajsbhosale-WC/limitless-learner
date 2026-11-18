@@ -11,7 +11,14 @@ import { useProgress } from "@/hooks/use-progress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/habits")({
-  head: () => ({ meta: [{ title: "Habits — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "Habits — Limitless" },
+    { name: "description", content: "Track daily learning habits and keep your study streaks moving." },
+    { property: "og:title", content: "Habits — Limitless" },
+    { property: "og:description", content: "Build consistent study habits with Limitless." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: HabitsPage,
 });
 

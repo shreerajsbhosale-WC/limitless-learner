@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import { weeklyReport } from "@/lib/focus.functions";
 
 export const Route = createFileRoute("/_authenticated/weekly")({
-  head: () => ({ meta: [{ title: "Weekly report — Limitless" }] }),
+  head: () => ({ meta: [
+    { title: "Weekly report — Limitless" },
+    { name: "description", content: "Review your weekly focus sessions, study habits, and learning progress." },
+    { property: "og:title", content: "Weekly report — Limitless" },
+    { property: "og:description", content: "A weekly summary of your study progress." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: WeeklyPage,
 });
 

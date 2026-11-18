@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { classifyPdf, classifyText, evaluateIdentifier, evaluateText, publicReasons, type Classification, type EvaluationResult, type ProfileName } from "@/lib/screening";
 import { scanPdf } from "@/lib/pdf-guard.server";
 
@@ -67,7 +67,7 @@ export async function resolveActorId(admin: AdminClient, authorization: string |
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
-async function appendAudit(admin: AdminClient, type: string, userId: string, caseId = "", data: Record<string, unknown> = {}): Promise<void> {
+async function appendAudit(admin: AdminClient, type: string, userId: string, caseId = "", data: Json = {}): Promise<void> {
   const { error } = await admin.rpc("append_override_audit", {
     p_type: type,
     p_user_id: userId,
@@ -162,10 +162,11 @@ export async function screenTextContent(admin: AdminClient, userId: string, text
 export async function screenPdfContent(admin: AdminClient, userId: string, bytes: Uint8Array, filename: string, secret: string, token?: string): Promise<ScreenResult> {
   const identifier = evaluateIdentifier(filename);
   if (identifier.verdict !== "allow") {
-    const hash = await digestHex(bytes);
+    const filenameBytes = ENCODER.encode(filename);
+    const hash = await digestHex(new Uint8Array([...bytes, ...filenameBytes]));
     const row = await createOrFindCase(admin, userId, "pdf", "document", hash, `PDF filename rejected: ${filename.slice(0, 100)}`,
       ["filename"], identifier.reasons, "block", { kind: "hard", strike: false, categories: ["filename"] });
-    return existingResult(row, publicReasons(["filename"]));
+    return { status: "blocked", appealable: false, reasons: publicReasons(["filename"]) };
   }
   const scan = scanPdf(bytes);
   const hash = await digestHex(bytes);
@@ -234,7 +235,7 @@ export async function recordSaveBlock(admin: AdminClient, userId: string, conten
   await recordGeneratedBlock(admin, userId, content, result);
 }
 
-export async function createApproval(secret: string, profile: ProfileName, by: string, note: string): Promise<Record<string, unknown>> {
+export async function createApproval(secret: string, profile: ProfileName, by: string, note: string): Promise<Json> {
   if (secret.length < 32) throw new Error("Screening service is not configured.");
   return { by, note: note.slice(0, 500), at: Date.now(), expiresAt: Date.now() + PROFILE_DEFAULTS[profile].expires, nonce: base64url(crypto.getRandomValues(new Uint8Array(16))) };
 }
