@@ -5,7 +5,7 @@ import { scanPdf } from "@/lib/pdf-guard.server";
 
 type AdminClient = SupabaseClient<Database>;
 type CaseRow = Database["public"]["Tables"]["screening_cases"]["Row"];
-type TokenPayload = { purpose: "override" | "pdf_receipt"; uid: string; hash: string; kind: "text" | "pdf"; profile: ProfileName; exp: number; cid?: string; nonce?: string };
+type TokenPayload = { purpose: "override" | "pdf_receipt"; uid: string; hash: string; kind: "text" | "pdf"; profile: ProfileName; exp: number; cid?: string; nonce?: string; rid?: string };
 
 const ENCODER = new TextEncoder();
 const PROFILE_DEFAULTS: Record<ProfileName, { expires: number }> = {
@@ -177,7 +177,7 @@ export async function screenPdfContent(admin: AdminClient, userId: string, bytes
   const scan = scanPdf(bytes);
   const hash = await digestHex(bytes);
   if (scan.verdict === "allow") {
-    return { status: "allowed", receipt: await signPayload({ purpose: "pdf_receipt", uid: userId, hash, kind: "pdf", profile: "document_sandbox", exp: Date.now() + 10 * 60 * 1000 }, secret) };
+    return { status: "allowed", receipt: await createPdfReceipt(admin, userId, hash, secret) };
   }
   const classification = classifyPdf(scan);
   const row = await createOrFindCase(admin, userId, "pdf", "document", hash, `PDF upload, ${bytes.byteLength} bytes`, classification.categories,
@@ -186,7 +186,7 @@ export async function screenPdfContent(admin: AdminClient, userId: string, bytes
     const overrideToken = token ?? await mintOverrideToken(row, secret);
     const redeemed = await redeemOverride(admin, userId, overrideToken, hash, "pdf", secret);
     if (!redeemed.ok) return { status: "blocked", appealable: false, reasons: ["This approval has expired or was already used."] };
-    const receipt = await signPayload({ purpose: "pdf_receipt", uid: userId, hash, kind: "pdf", profile: redeemed.profile, exp: Date.now() + 10 * 60 * 1000 }, secret);
+    const receipt = await createPdfReceipt(admin, userId, hash, secret);
     return { status: "approved", caseId: row.id, token: overrideToken, profile: redeemed.profile, receipt };
   }
   return existingResult(row, publicReasons(classification.categories));
@@ -198,7 +198,7 @@ export async function resumeApprovedPdf(admin: AdminClient, userId: string, byte
   const hash = await digestHex(bytes);
   const redeemed = await redeemOverride(admin, userId, token, hash, "pdf", secret);
   if (!redeemed.ok) return { status: "blocked", appealable: false, reasons: ["This approval is no longer valid. Scan the file again to request a new review."] };
-  const receipt = await signPayload({ purpose: "pdf_receipt", uid: userId, hash, kind: "pdf", profile: redeemed.profile, exp: Date.now() + 10 * 60 * 1000 }, secret);
+  const receipt = await createPdfReceipt(admin, userId, hash, secret);
   return { status: "approved", caseId: "redeemed", token, profile: redeemed.profile, receipt };
 }
 
@@ -217,7 +217,21 @@ export async function redeemOverride(admin: AdminClient, userId: string, token: 
 
 export async function verifyPdfReceipt(receipt: string, userId: string, secret: string): Promise<boolean> {
   const payload = await verifyPayload(receipt, secret);
-  return Boolean(payload && payload.purpose === "pdf_receipt" && payload.kind === "pdf" && payload.uid === userId);
+  return Boolean(payload && payload.purpose === "pdf_receipt" && payload.kind === "pdf" && payload.uid === userId && payload.rid);
+}
+
+async function createPdfReceipt(admin: AdminClient, userId: string, hash: string, secret: string): Promise<string> {
+  const { data, error } = await admin.from("screening_pdf_receipts").insert({ user_id: userId, pdf_hash: hash, source_hash: "0".repeat(64), expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() }).select("id").single();
+  if (error || !data) throw new Error("PDF screening receipt could not be created.");
+  return signPayload({ purpose: "pdf_receipt", uid: userId, hash, kind: "pdf", profile: "document_sandbox", exp: Date.now() + 10 * 60 * 1000, rid: data.id }, secret);
+}
+
+export async function consumePdfReceipt(admin: AdminClient, receipt: string, userId: string, sourceText: string, secret: string): Promise<boolean> {
+  const payload = await verifyPayload(receipt, secret);
+  if (!payload || payload.purpose !== "pdf_receipt" || payload.kind !== "pdf" || payload.uid !== userId || !payload.rid) return false;
+  const sourceHash = await digestHex(ENCODER.encode(sourceText));
+  const { data, error } = await admin.rpc("consume_screening_pdf_receipt", { p_id: payload.rid, p_user_id: userId, p_pdf_hash: payload.hash, p_source_hash: sourceHash });
+  return !error && data === true;
 }
 
 export async function redeemTextOverride(admin: AdminClient, userId: string, text: string, token: string, secret: string): Promise<boolean> {

@@ -330,6 +330,39 @@ export type Database = {
         }
         Relationships: []
       }
+      screening_pdf_receipts: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          extracted_text_hash: string | null
+          id: string
+          pdf_hash: string
+          source_hash: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          extracted_text_hash?: string | null
+          id?: string
+          pdf_hash: string
+          source_hash: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          extracted_text_hash?: string | null
+          id?: string
+          pdf_hash?: string
+          source_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_groups: {
         Row: {
           created_at: string
@@ -427,6 +460,15 @@ export type Database = {
       }
       consume_rate_limit: {
         Args: { _bucket: string; _max: number; _window_seconds: number }
+        Returns: boolean
+      }
+      consume_screening_pdf_receipt: {
+        Args: {
+          p_id: string
+          p_pdf_hash: string
+          p_source_hash: string
+          p_user_id: string
+        }
         Returns: boolean
       }
       decide_screening_case: {
