@@ -23,7 +23,7 @@ export const screenStudyText = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveActorId, screenTextContent } = await import("@/lib/screening.server");
     const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
+    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization") ?? null, getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     return screenTextContent(supabaseAdmin, actorId, data.text, data.mode, secret);
   });
 
@@ -37,7 +37,7 @@ export const fileScreeningAppeal = createServerFn({ method: "POST" })
     const { evaluateText } = await import("@/lib/screening");
     const { resolveActorId, createApproval } = await import("@/lib/screening.server");
     const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
+    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization") ?? null, getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     const { data: row, error } = await supabaseAdmin.from("screening_cases").select("id, user_id, status, profile, manual_review").eq("id", data.caseId).eq("user_id", actorId).maybeSingle();
     if (error || !row) return { status: "not_found" as const };
     const justification = data.justification.trim();
@@ -73,7 +73,7 @@ export const getScreeningAppealStatus = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveActorId, mintScreeningOverride } = await import("@/lib/screening.server");
     const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization"), getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
+    const actorId = await resolveActorId(supabaseAdmin, getRequestHeader("authorization") ?? null, getRequestHeader("cf-connecting-ip") ?? getRequestHeader("x-forwarded-for") ?? "", secret);
     const { data: row, error } = await supabaseAdmin.from("screening_cases").select("*").eq("id", data.caseId).eq("user_id", actorId).maybeSingle();
     if (error || !row) return { status: "not_found" as const };
     if (row.status === "approved") return { status: "approved" as const, token: await mintScreeningOverride(row, secret), profile: row.profile as ProfileName };

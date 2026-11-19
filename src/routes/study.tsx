@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Layers, BrainCircuit, Zap, RefreshCw, FileUp, Type, Video, Loader2, Save, Shuffle, Swords, ShieldAlert, Clock3 } from "lucide-react";
 
 import { SiteHeader } from "@/components/SiteHeader";
@@ -227,8 +226,9 @@ function StudyPage() {
     try {
       const result = await checkAppeal({ data: { caseId: screenNotice.caseId } });
       if (result.status === "approved" && "token" in result) {
+        const notice = screenNotice;
         setScreenNotice(null);
-        setApproveNotice({ ...screenNotice });
+        setApproveNotice({ ...notice });
         setApprovalToken(result.token);
       } else if (result.status === "denied") {
         setScreenNotice(null);

@@ -28,14 +28,14 @@ function fromBase64url(value: string): Uint8Array {
 }
 
 async function digestHex(bytes: Uint8Array): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", asArrayBuffer(bytes)));
   return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 async function signPayload(payload: TokenPayload, secret: string): Promise<string> {
   const encoded = base64url(ENCODER.encode(JSON.stringify(payload)));
   const key = await crypto.subtle.importKey("raw", ENCODER.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, ENCODER.encode(encoded)));
+  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, asArrayBuffer(ENCODER.encode(encoded))));
   return `${encoded}.${base64url(signature)}`;
 }
 
@@ -44,7 +44,7 @@ async function verifyPayload(token: string, secret: string): Promise<TokenPayloa
   if (!encoded || !signature || rest.length) return null;
   try {
     const key = await crypto.subtle.importKey("raw", ENCODER.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    if (!await crypto.subtle.verify("HMAC", key, fromBase64url(signature), ENCODER.encode(encoded))) return null;
+    if (!await crypto.subtle.verify("HMAC", key, asArrayBuffer(fromBase64url(signature)), asArrayBuffer(ENCODER.encode(encoded)))) return null;
     const payload = JSON.parse(new TextDecoder().decode(fromBase64url(encoded))) as TokenPayload;
     if (payload.exp < Date.now()) return null;
     return payload;
@@ -53,7 +53,13 @@ async function verifyPayload(token: string, secret: string): Promise<TokenPayloa
   }
 }
 
-export async function resolveActorId(admin: AdminClient, authorization: string | null, ip: string, secret: string): Promise<string> {
+function asArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
+
+export async function resolveActorId(admin: AdminClient, authorization: string | null | undefined, ip: string, secret: string): Promise<string> {
   if (authorization) {
     if (!authorization.startsWith("Bearer ")) throw new Error("Unauthorized");
     const token = authorization.slice(7);
